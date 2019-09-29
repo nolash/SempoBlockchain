@@ -252,17 +252,29 @@ def save_device_info(device_info, user):
         return device
 
 
-def set_custom_attributes(attribute_dict, user):
-    default_attributes = {}
-    custom_attributes = user.custom_attributes or {}   # loads in any existing custom attributes
-    for key in attribute_dict.keys():
+def extract_kobo_custom_attributes(post_data):
+    custom_attributes = {}
+    for key in post_data.keys():
         if key[0] != '_':
-            if key in DEFAULT_ATTRIBUTES:
-                default_attributes[key] = attribute_dict[key]
-            elif key not in KOBO_META_ATTRIBUTES:
-                custom_attributes[key] = {
-                    'value': attribute_dict[key]
-                }
+            if key not in KOBO_META_ATTRIBUTES and key not in DEFAULT_ATTRIBUTES:
+                custom_attributes[key] = post_data[key]
+    post_data['custom_attributes'] = custom_attributes
+    return post_data
+
+
+def set_custom_attributes(attribute_dict, user):
+    custom_attributes = user.custom_attributes or {}   # loads in any existing custom attributes
+    for key in attribute_dict['custom_attributes'].keys():
+        custom_attributes[key] = {
+            'value': attribute_dict['custom_attributes'][key]
+        }
+    set_attachments(attribute_dict, user, custom_attributes)
+    user.custom_attributes = custom_attributes
+
+    return custom_attributes 
+
+
+def set_attachments(attribute_dict, user, custom_attributes):
 
     attachments = attribute_dict.get('_attachments', [])
 
@@ -301,12 +313,9 @@ def set_custom_attributes(attribute_dict, user):
 
                 custom_attributes[attribute]['value'] = new_filename
                 custom_attributes[attribute]['uploaded_image_id'] = uploaded_image.id
-
                 continue
 
-    user.custom_attributes = custom_attributes
-
-    return default_attributes, custom_attributes
+    return custom_attributes
 
 
 def send_one_time_code(phone, user):
@@ -332,9 +341,9 @@ def proccess_create_or_modify_user_request(attribute_dict,
     :param organisation:  what organisation the request maker belongs to. The created user is bound to the same org
     :param allow_existing_user_modify: whether to return and error when the user already exists for the supplied IDs
     :param is_self_sign_up: does the request come from the register api?
+
     :return: An http response
     """
-
 
     email = attribute_dict.get('email')
     phone = attribute_dict.get('phone')
@@ -465,7 +474,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
             is_beneficiary=is_beneficiary, is_vendor=is_vendor
             )
 
-        default_attributes, custom_attributes = set_custom_attributes(attribute_dict, user)
+        custom_attributes = set_custom_attributes(attribute_dict, user)
         flag_modified(user, "custom_attributes")
 
         db.session.commit()
@@ -490,7 +499,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
         is_beneficiary=is_beneficiary, is_vendor=is_vendor, is_self_sign_up=is_self_sign_up
     )
 
-    default_attributes, custom_attributes = set_custom_attributes(attribute_dict, user)
+    custom_attributes = set_custom_attributes(attribute_dict, user)
 
     if is_self_sign_up and attribute_dict.get('deviceinfo', None) is not None:
         save_device_info(device_info=attribute_dict.get('deviceinfo'), user=user)

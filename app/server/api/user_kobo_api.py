@@ -27,6 +27,8 @@ class UserKoboAPI(MethodView):
         dict_processor.insert_settings_from_databse(CREATE_USER_SETTINGS)
         post_data = dict_processor.attribute_dict
 
+        post_data = UserUtils.extract_kobo_custom_attributes(post_data)
+
         response_object, response_code = UserUtils.proccess_create_or_modify_user_request(
             post_data,
             organisation=g.user.get_active_organisation()
@@ -37,7 +39,9 @@ class UserKoboAPI(MethodView):
 
         return make_response(jsonify(response_object)), response_code
 
+
 # add Rules for API Endpoints
+
 user_kobo_blueprint.add_url_rule(
     '/user_kobo/',
     view_func=UserKoboAPI.as_view('user_kobo_view'),

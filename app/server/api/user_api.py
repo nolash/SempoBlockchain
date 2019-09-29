@@ -118,8 +118,6 @@ class UserAPI(MethodView):
     def post(self, user_id):
         post_data = request.get_json()
 
-        print("################ Before", post_data)
-
         response_object, response_code = UserUtils.proccess_create_or_modify_user_request(
             post_data,
             organisation=g.user.get_active_organisation()
@@ -180,7 +178,9 @@ class UserAPI(MethodView):
 
         return make_response(jsonify(response_object)), 201
 
+
 # add Rules for API Endpoints
+
 user_blueprint.add_url_rule(
     '/user/',
     view_func=UserAPI.as_view('user_view'),
