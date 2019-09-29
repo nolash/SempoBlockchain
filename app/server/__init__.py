@@ -171,6 +171,7 @@ def register_blueprints(app):
     from server.api.credit_transfer_api import credit_transfer_blueprint
     from server.api.sms_api import sms_blueprint
     from server.api.user_api import user_blueprint
+    from server.api.user_kobo_api import user_kobo_blueprint
     from server.me_api import me_blueprint
     from server.api.export_api import export_blueprint
     from server.api.image_uploader_api import image_uploader_blueprint
@@ -189,6 +190,7 @@ def register_blueprints(app):
     app.register_blueprint(auth_blueprint, url_prefix='/api')
     app.register_blueprint(pusher_auth_blueprint, url_prefix='/api')
     app.register_blueprint(user_blueprint, url_prefix='/api')
+    app.register_blueprint(user_kobo_blueprint, url_prefix='/api')
     app.register_blueprint(transfer_account_blueprint, url_prefix='/api')
     app.register_blueprint(whatsapp_blueprint, url_prefix='/api')
     app.register_blueprint(blockchain_transaction_blueprint, url_prefix='/api')

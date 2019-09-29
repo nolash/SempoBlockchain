@@ -116,17 +116,9 @@ class UserAPI(MethodView):
 
     @requires_auth(allowed_roles={'ADMIN': 'sempoadmin'}, allowed_basic_auth_types=('external'))
     def post(self, user_id):
-
         post_data = request.get_json()
 
-        # Data supplied to the API via integrations such as KoboToolbox can be messy, so clean the data first
-        dict_processor = AttributeDictProccessor(post_data)
-        dict_processor.force_attribute_dict_keys_to_lowercase()
-        dict_processor.strip_kobo_preslashes()
-        dict_processor.attempt_to_truthy_dict_values()
-        dict_processor.strip_weirdspace_characters()
-        dict_processor.insert_settings_from_databse(CREATE_USER_SETTINGS)
-        post_data = dict_processor.attribute_dict
+        print("################ Before", post_data)
 
         response_object, response_code = UserUtils.proccess_create_or_modify_user_request(
             post_data,
