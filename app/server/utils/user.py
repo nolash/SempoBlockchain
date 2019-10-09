@@ -1,4 +1,5 @@
-import threading, re
+import threading
+import re
 from phonenumbers.phonenumberutil import NumberParseException
 from sqlalchemy.orm.attributes import flag_modified
 from bit import base58
@@ -53,28 +54,33 @@ def find_user_from_public_identifier(*public_identifiers):
         if public_identifier is None:
             continue
 
-        user = models.User.query.execution_options(show_all=True).filter_by(email=str(public_identifier).lower()).first()
+        user = models.User.query.execution_options(show_all=True).filter_by(
+            email=str(public_identifier).lower()).first()
         if user:
             continue
 
         try:
-            user = models.User.query.execution_options(show_all=True).filter_by(phone=proccess_phone_number(public_identifier)).first()
+            user = models.User.query.execution_options(show_all=True).filter_by(
+                phone=proccess_phone_number(public_identifier)).first()
             if user:
                 continue
         except NumberParseException:
             pass
 
-        user = models.User.query.execution_options(show_all=True).filter_by(public_serial_number=str(public_identifier).lower()).first()
+        user = models.User.query.execution_options(show_all=True).filter_by(
+            public_serial_number=str(public_identifier).lower()).first()
         if user:
             continue
 
-        user = models.User.query.execution_options(show_all=True).filter_by(nfc_serial_number=public_identifier.upper()).first()
+        user = models.User.query.execution_options(show_all=True).filter_by(
+            nfc_serial_number=public_identifier.upper()).first()
         if user:
             continue
 
         try:
             checksummed = to_checksum_address(public_identifier)
-            blockchain_address = models.BlockchainAddress.query.filter_by(address=checksummed).first()
+            blockchain_address = models.BlockchainAddress.query.filter_by(
+                address=checksummed).first()
 
             if blockchain_address and blockchain_address.transfer_account:
                 user = blockchain_address.transfer_account.primary_user
@@ -151,7 +157,7 @@ def create_transfer_account_user(first_name=None, last_name=None,
                                  transfer_account_name=None,
                                  location=None,
                                  use_precreated_pin=False,
-                                 use_last_4_digits_of_id_as_initial_pin = False,
+                                 use_last_4_digits_of_id_as_initial_pin=False,
                                  existing_transfer_account=None,
                                  is_beneficiary=False,
                                  is_vendor=False,
@@ -203,7 +209,8 @@ def create_transfer_account_user(first_name=None, last_name=None,
         user.transfer_accounts.append(existing_transfer_account)
     else:
 
-        transfer_account = models.TransferAccount(blockchain_address=blockchain_address, organisation=organisation)
+        transfer_account = models.TransferAccount(
+            blockchain_address=blockchain_address, organisation=organisation)
         transfer_account.name = transfer_account_name
         transfer_account.location = location
         transfer_account.is_vendor = is_vendor
@@ -238,12 +245,12 @@ def save_device_info(device_info, user):
 
         device = models.DeviceInfo()
 
-        device.serial_number    = device_info['serialNumber']
-        device.unique_id        = device_info['uniqueId']
-        device.brand            = device_info['brand']
-        device.model            = device_info['model']
-        device.width            = device_info['width']
-        device.height           = device_info['height']
+        device.serial_number = device_info['serialNumber']
+        device.unique_id = device_info['uniqueId']
+        device.brand = device_info['brand']
+        device.model = device_info['model']
+        device.width = device_info['width']
+        device.height = device_info['height']
 
         device.user = user
 
@@ -263,15 +270,19 @@ def extract_kobo_custom_attributes(post_data):
 
 
 def set_custom_attributes(attribute_dict, user):
-    custom_attributes = user.custom_attributes or {}   # loads in any existing custom attributes
-    for key in attribute_dict['custom_attributes'].keys():
-        custom_attributes[key] = {
-            'value': attribute_dict['custom_attributes'][key]
-        }
-    set_attachments(attribute_dict, user, custom_attributes)
-    user.custom_attributes = custom_attributes
+    # loads in any existing custom attributes
+    custom_attributes = user.custom_attributes or []
+    if 'custom_attributes' in attribute_dict:
 
-    return custom_attributes 
+        for key, value in attribute_dict['custom_attributes'].items():
+            custom_attribute = models.CustomAttributeUserStorage(name=key, value=value,
+                                                                 uploaded_image_id=None)
+            custom_attributes.append(custom_attribute)
+        custom_attributes = set_attachments(
+            attribute_dict, user, custom_attributes)
+
+    user.custom_attributes = custom_attributes
+    return custom_attributes
 
 
 def set_attachments(attribute_dict, user, custom_attributes):
@@ -279,14 +290,17 @@ def set_attachments(attribute_dict, user, custom_attributes):
     attachments = attribute_dict.get('_attachments', [])
 
     for attachment in attachments:
+        print('attachment', attachment)
         submitted_filename = attachment['filename'].split('/')[-1]
-        for attribute in custom_attributes.keys():
-            if submitted_filename == custom_attributes[attribute]['value']:
-                type = 'custom_attribute_{}'.format(attribute)
+        for attribute in custom_attributes:
+            if submitted_filename == custom_attributes.value:
+                type = 'custom_attribute_{}'.format(attribute.value)
 
-                new_filename = generate_new_filename(submitted_filename, type, 'KOBO')
+                new_filename = generate_new_filename(
+                    submitted_filename, type, 'KOBO')
 
-                uploaded_image = models.UploadedImage(filename=new_filename, image_type=type)
+                uploaded_image = models.UploadedImage(
+                    filename=new_filename, image_type=type)
 
                 uploaded_image.user = user
 
@@ -302,7 +316,7 @@ def set_attachments(attribute_dict, user, custom_attributes):
                                              args=(attachment['download_url'], new_filename, uploaded_image.id))
                     else:
                         t = threading.Thread(target=save_to_s3_from_url,
-                                                  args=(attachment['download_url'], new_filename))
+                                             args=(attachment['download_url'], new_filename))
 
                     t.daemon = True
                     t.start()
@@ -311,8 +325,8 @@ def set_attachments(attribute_dict, user, custom_attributes):
                     print("File has likely expired")
                     pass
 
-                custom_attributes[attribute]['value'] = new_filename
-                custom_attributes[attribute]['uploaded_image_id'] = uploaded_image.id
+                setattr(attribute, 'value', new_filename)
+                setattr(attribute, 'uploaded_image_id', uploaded_image.id)
                 continue
 
     return custom_attributes
@@ -320,17 +334,18 @@ def set_attachments(attribute_dict, user, custom_attributes):
 
 def send_one_time_code(phone, user):
     try:
-        send_phone_verification_message(to_phone=phone, one_time_code=user.one_time_code)
+        send_phone_verification_message(
+            to_phone=phone, one_time_code=user.one_time_code)
 
     except Exception as e:
-        raise PhoneVerificationError('Something went wrong. ERROR: {}'.format(e))
+        raise PhoneVerificationError(
+            'Something went wrong. ERROR: {}'.format(e))
 
 
 def proccess_create_or_modify_user_request(attribute_dict,
                                            organisation=None,
                                            allow_existing_user_modify=False,
                                            is_self_sign_up=False):
-
     """
     Takes a create or modify user request and determines the response. Normally what's in the top level API function,
     but here it's one layer down because there's multiple entry points for 'create user':
@@ -344,6 +359,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
 
     :return: An http response
     """
+    print('##################################', attribute_dict)
 
     email = attribute_dict.get('email')
     phone = attribute_dict.get('phone')
@@ -355,7 +371,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     if not blockchain_address and provided_public_serial_number:
 
         try:
-            blockchain_address = to_checksum_address(provided_public_serial_number)
+            blockchain_address = to_checksum_address(
+                provided_public_serial_number)
 
             # Since it's actually an ethereum address set the provided public serial number to None
             # so it doesn't get used as a transfer card
@@ -363,8 +380,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
         except Exception:
             pass
 
-
-    require_transfer_card_exists = attribute_dict.get('require_transfer_card_exists', True)
+    require_transfer_card_exists = attribute_dict.get(
+        'require_transfer_card_exists', True)
 
     public_serial_number = (provided_public_serial_number
                             or attribute_dict.get('payment_card_qr_code')
@@ -373,7 +390,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     location = attribute_dict.get('location')
 
     use_precreated_pin = attribute_dict.get('use_precreated_pin')
-    use_last_4_digits_of_id_as_initial_pin = attribute_dict.get('use_last_4_digits_of_id_as_initial_pin')
+    use_last_4_digits_of_id_as_initial_pin = attribute_dict.get(
+        'use_last_4_digits_of_id_as_initial_pin')
 
     transfer_account_name = attribute_dict.get('transfer_account_name')
     first_name = attribute_dict.get('first_name')
@@ -382,7 +400,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     primary_user_identifier = attribute_dict.get('primary_user_identifier')
     primary_user_pin = attribute_dict.get('primary_user_pin')
 
-    custom_initial_disbursement = attribute_dict.get('custom_initial_disbursement', None)
+    custom_initial_disbursement = attribute_dict.get(
+        'custom_initial_disbursement', None)
 
     is_vendor = attribute_dict.get('is_vendor', None)
     if is_vendor is None:
@@ -395,10 +414,11 @@ def proccess_create_or_modify_user_request(attribute_dict,
         try:
             base58.b58decode_check(blockchain_address)
         except ValueError:
-            response_object = {'message': 'Blockchain Address {} Not Valid'.format(blockchain_address)}
+            response_object = {
+                'message': 'Blockchain Address {} Not Valid'.format(blockchain_address)}
             return response_object, 400
 
-    if isinstance(phone,bool):
+    if isinstance(phone, bool):
         phone = None
 
     if phone and not is_self_sign_up:
@@ -413,7 +433,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     existing_transfer_account = None
     if primary_user_identifier:
 
-        primary_user = find_user_from_public_identifier(primary_user_identifier)
+        primary_user = find_user_from_public_identifier(
+            primary_user_identifier)
 
         if not primary_user or not primary_user.verify_password(primary_user_pin):
             response_object = {'message': 'Primary User not Found'}
@@ -427,7 +448,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
         primary_user_transfer_account = primary_user.transfer_account
 
         if not primary_user_transfer_account:
-            response_object = {'message': 'Primary User has no transfer account'}
+            response_object = {
+                'message': 'Primary User has no transfer account'}
             return response_object, 400
 
     if not (phone or email or public_serial_number or blockchain_address):
@@ -454,11 +476,12 @@ def proccess_create_or_modify_user_request(attribute_dict,
     if custom_initial_disbursement and not custom_initial_disbursement <= current_app.config['MAXIMUM_CUSTOM_INITIAL_DISBURSEMENT']:
         response_object = {
             'message': 'Disbursement more than maximum allowed amount ({} {})'
-                .format(current_app.config['MAXIMUM_CUSTOM_INITIAL_DISBURSEMENT']/100, current_app.config['CURRENCY_NAME'])
+            .format(current_app.config['MAXIMUM_CUSTOM_INITIAL_DISBURSEMENT']/100, current_app.config['CURRENCY_NAME'])
         }
         return response_object, 400
 
-    existing_user = find_user_from_public_identifier(email, phone, public_serial_number, blockchain_address)
+    existing_user = find_user_from_public_identifier(
+        email, phone, public_serial_number, blockchain_address)
     if existing_user:
 
         if not allow_existing_user_modify:
@@ -472,7 +495,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
             use_precreated_pin=use_precreated_pin,
             existing_transfer_account=existing_transfer_account,
             is_beneficiary=is_beneficiary, is_vendor=is_vendor
-            )
+        )
 
         custom_attributes = set_custom_attributes(attribute_dict, user)
         flag_modified(user, "custom_attributes")
@@ -494,7 +517,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
         transfer_account_name=transfer_account_name,
         location=location,
         use_precreated_pin=use_precreated_pin,
-        use_last_4_digits_of_id_as_initial_pin = use_last_4_digits_of_id_as_initial_pin,
+        use_last_4_digits_of_id_as_initial_pin=use_last_4_digits_of_id_as_initial_pin,
         existing_transfer_account=existing_transfer_account,
         is_beneficiary=is_beneficiary, is_vendor=is_vendor, is_self_sign_up=is_self_sign_up
     )
@@ -502,10 +525,12 @@ def proccess_create_or_modify_user_request(attribute_dict,
     custom_attributes = set_custom_attributes(attribute_dict, user)
 
     if is_self_sign_up and attribute_dict.get('deviceinfo', None) is not None:
-        save_device_info(device_info=attribute_dict.get('deviceinfo'), user=user)
+        save_device_info(device_info=attribute_dict.get(
+            'deviceinfo'), user=user)
 
     if custom_initial_disbursement:
-        disbursement = CreditTransferUtils.make_disbursement_transfer(custom_initial_disbursement, organisation.token, user)
+        disbursement = CreditTransferUtils.make_disbursement_transfer(
+            custom_initial_disbursement, organisation.token, user)
 
     # Location fires an async task that needs to know user ID
     db.session.flush()
@@ -516,7 +541,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
     if phone:
         if is_self_sign_up:
             send_one_time_code(phone=phone, user=user)
-            return {'message': 'User Created. Please verify phone number.','otp_verify': True}, 200
+            return {'message': 'User Created. Please verify phone number.', 'otp_verify': True}, 200
 
         elif current_app.config['ONBOARDING_SMS']:
             try:

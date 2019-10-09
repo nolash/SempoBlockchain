@@ -347,7 +347,7 @@ class User(ManyOrgBase, ModelBase):
 
     terms_accepted = db.Column(db.Boolean, default=True)
 
-    custom_attributes = db.Column(JSON)
+    #custom_attributes = db.Column(JSON)
     matched_profile_pictures = db.Column(JSON)
 
     ap_user_id     = db.Column(db.String())
@@ -374,28 +374,31 @@ class User(ManyOrgBase, ModelBase):
     # roles = db.relationship('UserRole', backref='user', lazy=True,
     #                              foreign_keys='UserRole.user_id')
 
-    uploaded_images = db.relationship('UploadedImage', backref='user', lazy=True,
+    uploaded_images     = db.relationship('UploadedImage', backref='user', lazy=True,
                                       foreign_keys='UploadedImage.user_id')
 
-    kyc_applications = db.relationship('KycApplication', backref='user', lazy=True,
+    kyc_applications    = db.relationship('KycApplication', backref='user', lazy=True,
                                       foreign_keys='KycApplication.user_id')
 
-    devices          = db.relationship('DeviceInfo', backref='user', lazy=True)
+    devices             = db.relationship('DeviceInfo', backref='user', lazy=True)
 
-    referrals        = db.relationship('Referral', backref='referring_user', lazy=True)
+    referrals           = db.relationship('Referral', backref='referring_user', lazy=True)
 
-    transfer_card    = db.relationship('TransferCard', backref='user', lazy=True, uselist=False)
+    transfer_card       = db.relationship('TransferCard', backref='user', lazy=True, uselist=False)
 
-    credit_sends = db.relationship('CreditTransfer', backref='sender_user',
+    credit_sends        = db.relationship('CreditTransfer', backref='sender_user',
                                    lazy='dynamic', foreign_keys='CreditTransfer.sender_user_id')
 
-    credit_receives = db.relationship('CreditTransfer', backref='recipient_user',
+    credit_receives     = db.relationship('CreditTransfer', backref='recipient_user',
                                       lazy='dynamic', foreign_keys='CreditTransfer.recipient_user_id')
 
-    ip_addresses     = db.relationship('IpAddress', backref='user', lazy=True)
+    ip_addresses        = db.relationship('IpAddress', backref='user', lazy=True)
 
     feedback            = db.relationship('Feedback', backref='user',
                                           lazy='dynamic', foreign_keys='Feedback.user_id')
+
+    custom_attributes    = db.relationship("CustomAttributeUserStorage", backref='user',
+                                       lazy='dynamic', foreign_keys='CustomAttributeUserStorage.user_id')
 
     @hybrid_property
     def phone(self):
@@ -481,6 +484,10 @@ class User(ManyOrgBase, ModelBase):
             self._held_roles.pop(role, None)
         else:
             self._held_roles[role] = tier
+
+    def set_custom_attributes(self, custom_attributes):
+        print("set_custom_attributes")
+
 
     @hybrid_property
     def has_admin_role(self):
@@ -1591,6 +1598,17 @@ class CustomAttribute(ModelBase):
     __tablename__               = 'custom_attribute'
 
     name                        = db.Column(db.String)
+
+class CustomAttributeUserStorage(ModelBase):
+    __tablename__               = 'custom_attribute_user_storage'
+
+    name                        = db.Column(db.String)
+    value                       = db.Column(db.String)
+
+    user_id                     = db.Column(db.Integer, db.ForeignKey('user.id'))
+    uploaded_image_id           = db.Column(db.Integer)
+
+
 
 
 class IpAddress(ModelBase):
