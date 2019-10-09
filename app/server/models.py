@@ -316,8 +316,9 @@ class User(ManyOrgBase, ModelBase):
     """
     __tablename__ = 'user'
 
-    first_name      = db.Column(db.String())
-    last_name       = db.Column(db.String())
+    first_name          = db.Column(db.String())
+    last_name           = db.Column(db.String())
+    preferred_language  = db.Column(db.String(), default='en_au')
 
     _last_seen       = db.Column(db.DateTime)
 

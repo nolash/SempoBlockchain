@@ -149,7 +149,7 @@ def update_transfer_account_user(user,
     return user
 
 
-def create_transfer_account_user(first_name=None, last_name=None,
+def create_transfer_account_user(first_name=None, last_name=None, preferred_language=None,
                                  phone=None, email=None, public_serial_number=None,
                                  organisation=None,
                                  token=None,
@@ -165,6 +165,7 @@ def create_transfer_account_user(first_name=None, last_name=None,
 
     user = models.User(first_name=first_name,
                        last_name=last_name,
+                       preferred_language=preferred_language,
                        phone=phone,
                        email=email,
                        public_serial_number=public_serial_number,
@@ -272,6 +273,8 @@ def extract_kobo_custom_attributes(post_data):
 def set_custom_attributes(attribute_dict, user):
     # loads in any existing custom attributes
     custom_attributes = user.custom_attributes or []
+
+    # Checks if custom attributes were posted
     if 'custom_attributes' in attribute_dict:
 
         for key, value in attribute_dict['custom_attributes'].items():
@@ -290,7 +293,6 @@ def set_attachments(attribute_dict, user, custom_attributes):
     attachments = attribute_dict.get('_attachments', [])
 
     for attachment in attachments:
-        print('attachment', attachment)
         submitted_filename = attachment['filename'].split('/')[-1]
         for attribute in custom_attributes:
             if submitted_filename == custom_attributes.value:
@@ -359,7 +361,6 @@ def proccess_create_or_modify_user_request(attribute_dict,
 
     :return: An http response
     """
-    print('##################################', attribute_dict)
 
     email = attribute_dict.get('email')
     phone = attribute_dict.get('phone')
@@ -396,6 +397,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     transfer_account_name = attribute_dict.get('transfer_account_name')
     first_name = attribute_dict.get('first_name')
     last_name = attribute_dict.get('last_name')
+    preferred_language = attribute_dict.get(
+        'preferred_language')
 
     primary_user_identifier = attribute_dict.get('primary_user_identifier')
     primary_user_pin = attribute_dict.get('primary_user_pin')
@@ -510,7 +513,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
         return response_object, 200
 
     user = create_transfer_account_user(
-        first_name=first_name, last_name=last_name,
+        first_name=first_name, last_name=last_name, preferred_language=preferred_language,
         phone=phone, email=email, public_serial_number=public_serial_number,
         organisation=organisation,
         blockchain_address=blockchain_address,
