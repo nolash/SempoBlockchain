@@ -150,6 +150,7 @@ def update_transfer_account_user(user,
 
 
 def create_transfer_account_user(first_name=None, last_name=None, preferred_language=None,
+                                 bio=None, gender=None,
                                  phone=None, email=None, public_serial_number=None,
                                  organisation=None,
                                  token=None,
@@ -166,6 +167,7 @@ def create_transfer_account_user(first_name=None, last_name=None, preferred_lang
     user = models.User(first_name=first_name,
                        last_name=last_name,
                        preferred_language=preferred_language,
+                       bio=bio, gender=gender,
                        phone=phone,
                        email=email,
                        public_serial_number=public_serial_number,
@@ -399,6 +401,8 @@ def proccess_create_or_modify_user_request(attribute_dict,
     last_name = attribute_dict.get('last_name')
     preferred_language = attribute_dict.get(
         'preferred_language')
+    bio = attribute_dict.get('bio')
+    gender = attribute_dict.get('gender')
 
     primary_user_identifier = attribute_dict.get('primary_user_identifier')
     primary_user_pin = attribute_dict.get('primary_user_pin')
@@ -514,6 +518,7 @@ def proccess_create_or_modify_user_request(attribute_dict,
 
     user = create_transfer_account_user(
         first_name=first_name, last_name=last_name, preferred_language=preferred_language,
+        bio=bio, gender=gender,
         phone=phone, email=email, public_serial_number=public_serial_number,
         organisation=organisation,
         blockchain_address=blockchain_address,
