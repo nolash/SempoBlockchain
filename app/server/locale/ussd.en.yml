@@ -26,15 +26,7 @@ en:
       0. Back
     send_token_reason: >
       CON Select Transfer reason
-      1. Food
-      2. Water
-      3. Energy
-      4. Education
-      5. Health
-      6. General shop
-      7. Environment
-      8. Transport
-      9. Labour
+      %options%
       10. Other
       0. Back
     send_token_reason_other: >
@@ -50,15 +42,7 @@ en:
       0. Back
     directory_listing: >
       CON Choose Market Category
-      1. Food
-      2. Water
-      3. Energy
-      4. Education
-      5. Health
-      6. General shop
-      7. Environment
-      8. Transport
-      9. Labour
+      %options%
     complete: END Your request has been sent. You will receive an SMS shortly.
     account_management: >
       CON My account

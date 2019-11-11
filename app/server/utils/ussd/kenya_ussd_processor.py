@@ -11,7 +11,10 @@ from server import db
 class KenyaUssdProcessor:
     @staticmethod
     def process_request(session_id: str, user_input: str, user: User) -> UssdMenu:
-        session: Optional[UssdSession] = UssdSession.query.filter_by(session_id=session_id).first()
+        print('process_request', user)
+        session: Optional[UssdSession] = UssdSession.query.filter_by(
+            session_id=session_id).execution_options(show_all=True).first()
+        print('session', session)
         # returning session
         if session:
             if user_input == "":
@@ -19,6 +22,7 @@ class KenyaUssdProcessor:
             elif user_input.split('*')[-1] == 0:
                 return UssdMenu.find_by_name(session.state).parent()
             else:
+                print('going to next state')
                 new_state = KenyaUssdProcessor.next_state(session, user_input)
                 return UssdMenu.find_by_name(new_state)
         # new session
@@ -31,7 +35,8 @@ class KenyaUssdProcessor:
                 else:
                     return UssdMenu.find_by_name('initial_pin_entry')
             else:
-                return UssdMenu.find_by_name('start')
+                # return UssdMenu.find_by_name('send_token_confirmation')
+                return UssdMenu.find_by_name('send_token_reason')
             
     @staticmethod
     def next_state(session: UssdSession, user_input: str) -> UssdMenu:
@@ -40,7 +45,7 @@ class KenyaUssdProcessor:
         new_state = state_machine.state
 
         session.state = new_state
-        db.session.commit()
+        # db.session.commit()
         return new_state
 
     @staticmethod
@@ -76,5 +81,19 @@ class KenyaUssdProcessor:
                     replacements.append(['%remaining_attempts%', "You have {} attempts remaining.".format(3 - user.pin_failed_attempts)])
             else:
                 replacements.append(['%remaining_attempts%', ''])
+        elif 'directory_listing' == menu.name or 'send_token_reason' == menu.name:
+                usages = user.get_most_relevant_transfer_usage()
+                menu_options = ''
+                for i, usage in enumerate(usages):
+                    business_usage_string = None
+                    if usage.translations is not None and user.preferred_language is not None:
+                        business_usage_string = usage.translations.get(
+                            user.preferred_language)
+                        print(business_usage_string)
+                    if business_usage_string is None:
+                        business_usage_string = usage.name
+                    message_option = '%d. %s ' % (i+1, business_usage_string)
+                    menu_options += message_option
+                replacements.append(['%options%', menu_options])
 
         return reduce(lambda text, r: text.replace(r[0], r[1]), replacements, display_text)
