@@ -19,6 +19,7 @@ const InvitePage = lazy(() => import("./components/pages/InvitePage.jsx"));
 const BusinessVerificationPage = lazy(() => import("./components/pages/businessVerificationPage.jsx"));
 const FundWalletPage = lazy(() => import("./components/pages/fundWalletPage.jsx"));
 const createUserPage = lazy(() => import("./components/pages/createUserPage.jsx"));
+const OrganisationPage = lazy(() => import("./components/pages/OrganisationPage"));
 const exportPage = lazy(() => import("./components/pages/exportPage.jsx"));
 const authPage = lazy(() => import('./components/pages/authPage.jsx'));
 const resetPasswordPage = lazy(() => import('./components/pages/resetPasswordPage.jsx'));
@@ -74,6 +75,7 @@ class Nav extends React.Component {
               <PrivateRoute path="/upload" component={uploadPage} isLoggedIn={isLoggedIn} isReAuthing={isReAuthing}/>
               <PrivateRoute path="/create" component={createUserPage} isLoggedIn={isLoggedIn} isReAuthing={isReAuthing}/>
               <PrivateRoute path="/export" component={exportPage} isLoggedIn={isLoggedIn} isReAuthing={isReAuthing}z/>
+              <PrivateRoute path="/organisation" component={OrganisationPage} isLoggedIn={isLoggedIn} isReAuthing={isReAuthing}z/>
 
               {/* PUBLIC PAGES */}
               <PublicRoute path="/reset-password" component={resetPasswordPage} />

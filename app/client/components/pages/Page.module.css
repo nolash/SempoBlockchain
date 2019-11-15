@@ -1,0 +1,21 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+}
+
+.pageWrapper {
+    margin-left: 234px;
+    width: calc(100vw - 234px);
+}
+
+@media (max-width: 767px) {
+    .pageWrapper {
+        margin-top: 50px;
+        margin-left: 0;
+        width: 100vw;
+        flex-direction: column;
+    }
+}

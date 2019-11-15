@@ -1,7 +1,7 @@
 import {combineReducers} from "redux";
 import {
   LOAD_ORGANISATION_REQUEST,
-  UPDATE_ORGANISATION,
+  UPDATE_ORGANISATIONS,
   LOAD_ORGANISATION_SUCCESS,
   LOAD_ORGANISATION_FAILURE,
   LoadOrganisationAction, OrganisationAction, Organisation
@@ -9,8 +9,8 @@ import {
 
 const organisations = (state = [], action: OrganisationAction): Organisation[] => {
   switch (action.type) {
-    case UPDATE_ORGANISATION:
-      return [action.organisation];
+    case UPDATE_ORGANISATIONS:
+      return action.organisations;
 
     default:
       return state;
@@ -42,8 +42,7 @@ const loadStatus = (state = initialLoadStatusState, action: LoadOrganisationActi
   }
 };
 
-// TODO: why is this failing
-// @ts-ignore
+//@ts-ignore
 export const OrganisationReducer = combineReducers({
   organisations,
   loadStatus,

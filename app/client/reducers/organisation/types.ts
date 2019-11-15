@@ -1,13 +1,13 @@
 export interface Organisation {
   name: string
 }
-export const UPDATE_ORGANISATION = "UPDATE_ORGANISATION";
-interface UpdateOrganisation {
-  type: typeof UPDATE_ORGANISATION,
-  organisation: Organisation
+export const UPDATE_ORGANISATIONS = "UPDATE_ORGANISATIONS";
+interface UpdateOrganisations {
+  type: typeof UPDATE_ORGANISATIONS,
+  organisations: Organisation[]
 }
 
-export type OrganisationAction = UpdateOrganisation
+export type OrganisationAction = UpdateOrganisations
 
 export const LOAD_ORGANISATION_REQUEST = "LOAD_ORGANISATIONS_REQUEST";
 interface LoadOrganisationRequest {

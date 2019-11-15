@@ -49,7 +49,7 @@ const rootReducer = combineReducers({
   businessVerification,
   wyre,
   transferUsages: TransferUsageReducer,
-  organisation: OrganisationReducer,
+  organisations: OrganisationReducer,
   form: FormReducer
 });
 

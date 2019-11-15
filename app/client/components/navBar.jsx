@@ -111,6 +111,7 @@ class NavBar extends React.Component {
                                     <StyledLink to='/' exact onClick={() => this._closeMobileMenu()}>Dashboard</StyledLink>
                                     <StyledLink to='/accounts' onClick={() => this._closeMobileMenu()}>Accounts</StyledLink>
                                     <StyledLink to='/transfers' onClick={() => this._closeMobileMenu()}>Transfers</StyledLink>
+                                    <StyledLink to='/organisation' onClick={() => this._closeMobileMenu()}>Organisation</StyledLink>
                                     <StyledLink to='/settings' onClick={() => this._closeMobileMenu()}>Settings</StyledLink>
                                   </div>
                                   <ContractAddress
