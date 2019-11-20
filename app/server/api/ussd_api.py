@@ -33,7 +33,8 @@ class ProcessKenyaUssd(MethodView):
 
         if phone_number:
             msisdn = proccess_phone_number(phone_number, 'KE')
-            user = User.query.filter_by(phone=msisdn).first()
+            print(msisdn)
+            user = User.query.execution_options(show_all=True).filter_by(phone=msisdn).first()
             # TODO(ussd): 'exit_not_registered' if no user
             if None in [user, msisdn, session_id]:
                 current_menu = UssdMenu.find_by_name('exit_invalid_request')

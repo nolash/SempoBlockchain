@@ -19,7 +19,7 @@ class KenyaUssdProcessor:
             elif user_input.split('*')[-1] == 0:
                 return UssdMenu.find_by_name(session.state).parent()
             else:
-                new_state = KenyaUssdProcessor.next_state(session, user_input)
+                new_state = KenyaUssdProcessor.next_state(session, user_input, user)
                 return UssdMenu.find_by_name(new_state)
         # new session
         else:
@@ -34,13 +34,13 @@ class KenyaUssdProcessor:
                 return UssdMenu.find_by_name('start')
             
     @staticmethod
-    def next_state(session: UssdSession, user_input: str) -> UssdMenu:
-        state_machine = KenyaUssdStateMachine(session)
+    def next_state(session: UssdSession, user_input: str, user) -> UssdMenu:
+        state_machine = KenyaUssdStateMachine(session, user)
         state_machine.feed_char(user_input.split('*')[-1])
         new_state = state_machine.state
 
         session.state = new_state
-        db.session.commit()
+        # db.session.commit()
         return new_state
 
     @staticmethod
@@ -76,5 +76,17 @@ class KenyaUssdProcessor:
                     replacements.append(['%remaining_attempts%', "You have {} attempts remaining.".format(3 - user.pin_failed_attempts)])
             else:
                 replacements.append(['%remaining_attempts%', ''])
-
+        elif menu.name == 'directory_listing' or menu.name =='send_token_reason':
+            usages = user.get_most_relevant_transfer_usage()
+            menu_options = ''
+            for i, usage in enumerate(usages):
+                business_usage_string = None
+                if usage.translations is not None and user.preferred_language is not None:
+                    business_usage_string = usage.translations.get(
+                        user.preferred_language)
+                if business_usage_string is None:
+                    business_usage_string = usage.name
+                message_option = '\n%d. %s' % (i+1, business_usage_string)
+                menu_options += message_option
+            replacements.append(['%options%', menu_options])
         return reduce(lambda text, r: text.replace(r[0], r[1]), replacements, display_text)

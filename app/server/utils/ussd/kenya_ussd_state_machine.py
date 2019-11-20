@@ -12,6 +12,7 @@ from transitions import Machine
 from server import db, message_processor
 from server.models.user import User
 from server.models.ussd import UssdSession
+from server.models.transfer_usage import TransferUsage
 from server.utils.phone import proccess_phone_number
 from server.utils.i18n import i18n_for
 from server.utils.user import set_custom_attributes
@@ -51,6 +52,7 @@ class KenyaUssdStateMachine(Machine):
               'opt_out_of_market_place_pin_authorization',
               # directory listing state
               'directory_listing',
+              'send_directory_listing',
               # exchange token states
               'exchange_token',
               'exchange_rate_pin_authorization',
@@ -171,6 +173,34 @@ class KenyaUssdStateMachine(Machine):
     def process_exchange_token_request(self):
         pass
 
+    def save_transfer_reason(self, user_input):
+        if self.session.session_data is None:
+            self.session.session_data = {}
+        self.session.session_data['directory_listening_choice'] = int(
+            user_input)
+        pass
+
+    def store_transfer_usage(self, user_input):
+        print('store_transfer_usage')
+        
+        transfer_usage_id_order = []
+        transfer_usages = self.user.get_most_relevant_transfer_usage()
+        for usage in transfer_usages:
+            transfer_usage_id_order.append(usage.id)
+        if self.session.session_data is None:
+            self.session.session_data = {'transfer_usage_mapping': transfer_usage_id_order}
+        elif type(self.session.session_data) is dict:
+            self.session.session_data['transfer_usage_mapping'] = transfer_usage_id_order
+        pass
+
+    def send_directory_listing(self, user_input):
+        print('send_directory_listing')
+        print(self.session.session_data)
+        selected_tranfer_usage_id = self.session.session_data['transfer_usage_mapping'][int(user_input)-1]
+        chosen_transfer_usage = db.session.query(TransferUsage).filter_by(id=selected_tranfer_usage_id).first()
+        print(chosen_transfer_usage.name)
+        # TODO: Implement functionality that actually sends the directory listening
+
     def menu_one_selected(self, user_input):
         return user_input == '1'
 
@@ -257,7 +287,8 @@ class KenyaUssdStateMachine(Machine):
             {'trigger': 'feed_char',
              'source': 'start',
              'dest': 'directory_listing',
-             'conditions': 'menu_three_selected'},
+             'conditions': 'menu_three_selected',
+             'after': 'store_transfer_usage'},
             {'trigger': 'feed_char',
              'source': 'start',
              'dest': 'exchange_token',
@@ -314,6 +345,12 @@ class KenyaUssdStateMachine(Machine):
                             source='send_token_reason_other',
                             dest='send_token_pin_authorization',
                             after='save_transaction_reason_other')
+
+        self.add_transition(trigger='feed_char',
+                            source='directory_listing',
+                            dest='complete',
+                            after='send_directory_listing')
+
 
         # event: send_token_pin_authorization transitions
         send_token_pin_authorization_transitions = [

@@ -25,17 +25,7 @@ sw:
       CON Weka kiwango
       0. Nyuma
     send_token_reason: >
-      CON Chagua kusudi la malipo
-      1. Chakula
-      2. Maji
-      3. Kuni/makaa/mafuta/stima
-      4. Elimu
-      5. Afya
-      6. Uchuuzi
-      7. Mazingira
-      8. Usafiri
-      9. Mfanyakazi
-      10. Nyingine
+      CON Chagua kusudi la malipo %options%
       0. Nyuma
     send_token_reason_other: >
       CON Fafanua kusudi zaidi
@@ -49,16 +39,7 @@ sw:
       2. Futa
       0. Nyuma
     directory_listing: >
-      CON Chagua unachotaka Sokoni
-      1. Chakula
-      2. Maji
-      3. Kuni/makaa/mafuta/stima
-      4. Elimu
-      5. Afya
-      6. Duka la jumla
-      7. Mazingira
-      8. Usafiri
-      9. Mfanyakazi
+      CON Chagua unachotaka Sokoni %options%
     complete: END Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
     account_management: >
       CON Akaunti yangu
