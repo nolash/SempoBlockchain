@@ -133,7 +133,9 @@ class KenyaUssdStateMachine(Machine):
     def save_transaction_amount(self, user_input):
         pass
 
-    def save_transaction_reason(self, user_input):
+    def save_transaction_reason(self, user_input):  
+        chosen_transfer_usage = self.get_select_transfer_usage(user_input)
+        print(chosen_transfer_usage.name)
         pass
 
     def save_transaction_reason_other(self, user_input):
@@ -173,16 +175,7 @@ class KenyaUssdStateMachine(Machine):
     def process_exchange_token_request(self):
         pass
 
-    def save_transfer_reason(self, user_input):
-        if self.session.session_data is None:
-            self.session.session_data = {}
-        self.session.session_data['directory_listening_choice'] = int(
-            user_input)
-        pass
-
-    def store_transfer_usage(self, user_input):
-        print('store_transfer_usage')
-        
+    def store_transfer_usage(self, user_input):       
         transfer_usage_id_order = []
         transfer_usages = self.user.get_most_relevant_transfer_usage()
         for usage in transfer_usages:
@@ -194,12 +187,15 @@ class KenyaUssdStateMachine(Machine):
         pass
 
     def send_directory_listing(self, user_input):
-        print('send_directory_listing')
-        print(self.session.session_data)
-        selected_tranfer_usage_id = self.session.session_data['transfer_usage_mapping'][int(user_input)-1]
-        chosen_transfer_usage = db.session.query(TransferUsage).filter_by(id=selected_tranfer_usage_id).first()
+        chosen_transfer_usage = self.get_select_transfer_usage(user_input)
         print(chosen_transfer_usage.name)
+
         # TODO: Implement functionality that actually sends the directory listening
+
+    def get_select_transfer_usage(self, user_input):
+        selected_tranfer_usage_id = self.session.session_data['transfer_usage_mapping'][int(
+                    user_input)-1]
+        return db.session.query(TransferUsage).filter_by(id=selected_tranfer_usage_id).first() 
 
     def menu_one_selected(self, user_input):
         return user_input == '1'
@@ -325,7 +321,7 @@ class KenyaUssdStateMachine(Machine):
         self.add_transition(trigger='feed_char',
                             source='send_token_amount',
                             dest='send_token_reason',
-                            after='save_transaction_amount')
+                            after=['save_transaction_amount', 'store_transfer_usage'])
 
         # event: send_token_reason transitions
         send_token_reason_transitions = [

@@ -32,7 +32,7 @@ class KenyaUssdProcessor:
                     return UssdMenu.find_by_name('initial_pin_entry')
             else:
                 return UssdMenu.find_by_name('start')
-            
+
     @staticmethod
     def next_state(session: UssdSession, user_input: str, user) -> UssdMenu:
         state_machine = KenyaUssdStateMachine(session, user)
@@ -76,7 +76,7 @@ class KenyaUssdProcessor:
                     replacements.append(['%remaining_attempts%', "You have {} attempts remaining.".format(3 - user.pin_failed_attempts)])
             else:
                 replacements.append(['%remaining_attempts%', ''])
-        elif menu.name == 'directory_listing' or menu.name =='send_token_reason':
+        elif menu.name == 'directory_listing' or menu.name == 'send_token_reason':
             usages = user.get_most_relevant_transfer_usage()
             menu_options = ''
             for i, usage in enumerate(usages):
