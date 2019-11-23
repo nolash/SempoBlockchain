@@ -47,6 +47,7 @@ class KenyaUssdStateMachine(Machine):
         'opt_out_of_market_place_pin_authorization',
         # directory listing state
         'directory_listing',
+        'directory_listing_other',
         # exchange token states
         'exchange_token',
         'exchange_rate_pin_authorization',
@@ -171,7 +172,9 @@ class KenyaUssdStateMachine(Machine):
         self.session.set_data('transaction_amount', user_input)
 
     def save_transaction_reason(self, user_input):
-        #TODO: use ruben's dynamic code to convert number to reason
+        # TODO(ruben): fix this
+        # chosen_transfer_usage = self.get_select_transfer_usage(user_input)
+        # self.session.set_data('transaction_reason', chosen_transfer_usage.name)
         self.session.set_data('transaction_reason_translated', user_input)
         self.session.set_data('transaction_reason_id', "1")
 
@@ -201,7 +204,8 @@ class KenyaUssdStateMachine(Machine):
         ussd_tasker.inquire_balance(self.user)
 
     def send_directory_listing(self, user_input):
-        #TODO: replace with ruben's method when merge
+        # TODO(ruben): fix this
+        # chosen_transfer_usage = self.get_select_transfer_usage(user_input)
         chosen_transfer_usage = TransferUsage.find_or_create("Food")
 
         try:
@@ -231,6 +235,22 @@ class KenyaUssdStateMachine(Machine):
         agent = get_user_by_phone(self.session.get_data('agent_phone'), "KE")
         amount = float(self.session.get_data('exchange_amount'))
         ussd_tasker.exchange_token(self.user, agent, amount)
+
+    def store_transfer_usage(self, user_input):
+        transfer_usage_id_order = []
+        transfer_usages = self.user.get_most_relevant_transfer_usage()
+        for usage in transfer_usages:
+            transfer_usage_id_order.append(usage.id)
+        if self.session.session_data is None:
+            self.session.session_data = {'transfer_usage_mapping': transfer_usage_id_order}
+        elif type(self.session.session_data) is dict:
+            self.session.session_data['transfer_usage_mapping'] = transfer_usage_id_order
+        pass
+
+    def get_select_transfer_usage(self, user_input):
+        selected_tranfer_usage_id = self.session.session_data['transfer_usage_mapping'][int(
+                    user_input)-1]
+        return TransferUsage.query.filter_by(id=selected_tranfer_usage_id).first()
 
     def menu_one_selected(self, user_input):
         return user_input == '1'
@@ -322,7 +342,8 @@ class KenyaUssdStateMachine(Machine):
             {'trigger': 'feed_char',
              'source': 'start',
              'dest': 'directory_listing',
-             'conditions': 'menu_three_selected'},
+             'conditions': 'menu_three_selected',
+             'after': 'store_transfer_usage'},
             {'trigger': 'feed_char',
              'source': 'start',
              'dest': 'exchange_token',
@@ -359,7 +380,7 @@ class KenyaUssdStateMachine(Machine):
         self.add_transition(trigger='feed_char',
                             source='send_token_amount',
                             dest='send_token_reason',
-                            after='save_transaction_amount')
+                            after=['save_transaction_amount', 'store_transfer_usage'])
 
         # event: send_token_reason transitions
         send_token_reason_transitions = [
@@ -374,11 +395,15 @@ class KenyaUssdStateMachine(Machine):
         ]
         self.add_transitions(send_token_reason_transitions)
 
-        # event: send_token_reason_other transition
         self.add_transition(trigger='feed_char',
-                            source='send_token_reason_other',
-                            dest='send_token_pin_authorization',
-                            after='save_transaction_reason_other')
+                            source='directory_listing',
+                            dest='directory_listing_other',
+                            conditions='menu_ten_selected')
+
+        self.add_transition(trigger='feed_char',
+                            source='directory_listing',
+                            dest='complete',
+                            after='send_directory_listing')
 
         # event: send_token_pin_authorization transitions
         send_token_pin_authorization_transitions = [
