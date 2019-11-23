@@ -1,9 +1,8 @@
 from typing import Optional
-from functools import reduce
 
 from server.models.ussd import UssdMenu, UssdSession
 from server.models.user import User
-from server.utils.phone import proccess_phone_number
+from server.models.transfer_usage import TransferUsage
 from server.utils.user import get_user_by_phone, default_token
 from server.utils.ussd.kenya_ussd_state_machine import KenyaUssdStateMachine
 from server.utils.i18n import i18n_for
@@ -97,8 +96,36 @@ class KenyaUssdProcessor:
             else:
                 return i18n_for(user, "{}.first".format(menu.display_key))
 
+        if menu.name == 'directory_listing' or menu.name == 'send_token_reason':
+            usages = user.get_most_relevant_transfer_usage()
+            menu_options = KenyaUssdProcessor.create_usages_list(usages, user)
+            return i18n_for(
+                user, menu.display_key,
+                options=menu_options
+            )
+
+        if menu.name == 'directory_listing_other':
+            most_relevant_usage_ids = ussd_session.session_data['transfer_usage_mapping']
+            usages = TransferUsage.query.filter(
+                TransferUsage.id.notin_(most_relevant_usage_ids))
+            menu_options = KenyaUssdProcessor.create_usages_list(usages, user)
+            return i18n_for(
+                user, menu.display_key,
+                options_options=menu_options
+            )
+
         return None
 
-
-
-
+    @staticmethod
+    def create_usages_list(usages, user):
+        menu_options = ''
+        for i, usage in enumerate(usages):
+            business_usage_string = None
+            if usage.translations is not None and user.preferred_language is not None:
+                business_usage_string = usage.translations.get(
+                    user.preferred_language)
+            if business_usage_string is None:
+                business_usage_string = usage.name
+            message_option = '%d. %s\n' % (i+1, business_usage_string)
+            menu_options += message_option
+        return menu_options

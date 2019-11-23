@@ -8,7 +8,7 @@ from helpers.user import UserFactory
 from helpers.ussd_session import UssdSessionFactory
 from server.utils.ussd.kenya_ussd_state_machine import KenyaUssdStateMachine
 from server.models.user import User
-from unit.app.utils.ussd.kenya.test_send import make_kenyan_phone
+from unit.app.utils.ussd.kenya.test_send_state import make_kenyan_phone
 
 fake = Faker()
 fake.add_provider(phone_number)
