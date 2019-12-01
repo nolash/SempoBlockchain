@@ -27,10 +27,25 @@ sw:
     send_token_reason: |
       CON Chagua kusudi la malipo 
       %{options}
+      9. Onyesha chaguzi zingine # This needs proper translations 
       0. Nyuma
-    send_token_reason_other: |
-      CON Fafanua kusudi zaidi
-      0. Nyuma
+    send_token_reason_other:  # This needs proper translations 
+      first: |
+        CON Fafanua kusudi zaidi
+        %{other_options}
+        9. Onyesha chaguzi zingine
+        0. Nyuma
+      middle: |
+        CON Fafanua kusudi zaidi
+        %{other_options}
+        9. Onyesha chaguzi zingine
+        10. Onyesha chaguzi zilizopita
+        0. Nyuma
+      last: |
+        CON Fafanua kusudi zaidi
+        %{other_options}
+        10. Onyesha chaguzi zilizopita
+        0. Nyuma
     send_token_pin_authorization:
       first:
         CON Weka nambari ya siri.
@@ -46,11 +61,22 @@ sw:
     directory_listing: |
       CON Chagua unachotaka Sokoni 
       %options%
-      10. Onyesha chaguzi zingine # translate this properly I did this with google translate
+      9. Onyesha chaguzi zingine # translate this properly I did this with google translate
     complete: END Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
-    directory_listing_other: |
-      CON Chagua unachotaka Sokoni 
-      %{other_options}
+    directory_listing_other: # Add proper translations
+      first: |
+        CON Chagua unachotaka Sokoni 
+        %{other_options}
+        9. Onyesha chaguzi zingine
+      middle: |
+        CON Chagua unachotaka Sokoni 
+        %{other_options}
+        9. Onyesha chaguzi zingine
+        10. Onyesha chaguzi zilizopita
+      last: |
+        CON Chagua unachotaka Sokoni 
+        %{other_options}
+        10. Onyesha chaguzi zilizopita
     account_management: |
       CON Akaunti yangu
       1. Biashara Yangu

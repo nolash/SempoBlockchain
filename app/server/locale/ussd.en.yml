@@ -27,10 +27,25 @@ en:
     send_token_reason: |
       CON Select Transfer reason 
       %{options}
+      9. Show other options
       0. Back
-    send_token_reason_other: |
-      CON Please specify
-      0. Back
+    send_token_reason_other:
+      first: |
+        CON Please specify
+        %{other_options}
+        9. Show other options
+        0. Back
+      middle: |
+        CON Please specify 
+        %{other_options}
+        9. Show other options
+        10. Show previous options
+        0. Back
+      last: |
+        CON Please specify
+        %{other_options}
+        10. Show previous options
+        0. Back
     send_token_pin_authorization:
       first: |
         CON Please enter your PIN.
@@ -45,12 +60,23 @@ en:
       0. Back
     directory_listing: |
       CON Choose Market Category 
-      %options%
-      10. Show other options
+      %{options}
+      9. Show other options
     complete: END Your request has been sent. You will receive an SMS shortly.
-    directory_listing_other: |
-      CON Choose Market Category 
-      %{other_options}
+    directory_listing_other:
+      first: |
+        CON Choose Market Category 
+        %{other_options}
+        9. Show other options
+      middle: |
+        CON Choose Market Category 
+        %{other_options}
+        9. Show other options
+        10. Show previous options
+      last: |
+        CON Choose Market Category 
+        %{other_options}
+        10. Show previous options
     account_management: |
       CON My account
       1. My Business

@@ -2,6 +2,7 @@ from sqlalchemy.dialects.postgresql import JSON
 
 from server import db, sentry
 from server.models.utils import ModelBase
+from sqlalchemy.orm.attributes import flag_modified
 
 
 class UssdMenu(ModelBase):
@@ -48,6 +49,8 @@ class UssdSession(ModelBase):
         if self.session_data is None:
             self.session_data = {}
         self.session_data[key] = value
+        flag_modified(self, "session_data")
+        # Without this flag it doesn't store the changed json
 
     def get_data(self, key):
         if self.session_data is not None:
