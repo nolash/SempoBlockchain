@@ -182,10 +182,6 @@ class KenyaUssdStateMachine(Machine):
         self.session.set_data('transaction_reason_translated', reason_translated)
         self.session.set_data('transaction_reason_id', chosen_transfer_usage.id)
 
-    def save_transaction_reason_other(self, user_input):
-        self.session.set_data('transaction_reason_translated', user_input)
-        self.session.set_data('transaction_reason_id', "1")
-
     def set_usage_menu_number(self, user_input):
         current_menu_nr = self.session.get_data('usage_menu')
         if int(user_input) == 9:
@@ -248,6 +244,14 @@ class KenyaUssdStateMachine(Machine):
         ussd_tasker.exchange_token(self.user, agent, amount)
 
     def store_transfer_usage(self, user_input):
+        transfer_usage_id_order = []
+        transfer_usages = self.user.get_most_relevant_transfer_usage()
+        for usage in transfer_usages:
+            transfer_usage_id_order.append(usage.id)
+        if self.session.session_data is None:
+            self.session.session_data = {'transfer_usage_mapping': transfer_usage_id_order}
+        elif type(self.session.session_data) is dict:
+            self.session.session_data['transfer_usage_mapping'] = transfer_usage_id_order
         pass
 
     def get_select_transfer_usage(self, user_input):
@@ -415,6 +419,7 @@ class KenyaUssdStateMachine(Machine):
         ]
         self.add_transitions(send_token_reason_transitions)
 
+<<<<<<< HEAD
         directory_listing_transitions = [
             {'trigger': 'feed_char',
              'source': 'directory_listing',
@@ -440,6 +445,17 @@ class KenyaUssdStateMachine(Machine):
              'after': 'send_directory_listing'},
         ]
         self.add_transitions(directory_listing_transitions)
+=======
+        self.add_transition(trigger='feed_char',
+                            source='directory_listing',
+                            dest='directory_listing_other',
+                            conditions='menu_ten_selected')
+
+        self.add_transition(trigger='feed_char',
+                            source='directory_listing',
+                            dest='complete',
+                            after='send_directory_listing')
+>>>>>>> 8aca4abc416fced4da409a44564189d158719a84
 
         # event: send_token_pin_authorization transitions
         send_token_pin_authorization_transitions = [
