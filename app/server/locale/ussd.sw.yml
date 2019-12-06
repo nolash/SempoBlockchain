@@ -62,21 +62,25 @@ sw:
       CON Chagua unachotaka Sokoni 
       %options%
       9. Onyesha chaguzi zingine # translate this properly I did this with google translate
+      0. Nyuma
     complete: END Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
     directory_listing_other: # Add proper translations
       first: |
         CON Chagua unachotaka Sokoni 
         %{other_options}
         9. Onyesha chaguzi zingine
+        0. Nyuma
       middle: |
         CON Chagua unachotaka Sokoni 
         %{other_options}
         9. Onyesha chaguzi zingine
         10. Onyesha chaguzi zilizopita
+        0. Nyuma
       last: |
         CON Chagua unachotaka Sokoni 
         %{other_options}
         10. Onyesha chaguzi zilizopita
+        0. Nyuma
     account_management: |
       CON Akaunti yangu
       1. Biashara Yangu

@@ -4,8 +4,9 @@ from server.utils.ussd.kenya_ussd_processor import KenyaUssdProcessor
 
 from helpers.user import UserFactory, TransferUsageFactory
 from helpers.ussd_session import UssdSessionFactory, UssdMenuFactory
-
+from server import db
 standard_user = partial(UserFactory)
+
 
 
 def mock_get_most_relevant_transfer_usage():
@@ -30,14 +31,20 @@ def mock_get_most_relevant_transfer_usage():
     ("directory_listing", None, '\n1. Food\n2. Education'),
 ])
 def test_custom_display_text(mocker, test_client, init_database, menu_name, language, expected):
-    start_state = UssdSessionFactory()
-    user = standard_user()
-    user.preferred_language = language
+    transferUsage = TransferUsageFactory(name='Food', id=1, default=True)
+    transferUsage2 = TransferUsageFactory(name='Education', id=2, default=True)
+    
+    with db.session.no_autoflush:
+        start_state = UssdSessionFactory()
+        # start_state = UssdSessionFactory(session_data={'transfer_usage_mapping': [1]})
+        start_state.session_data = {'transfer_usage_mapping': [1, 2]}
+        user = standard_user()
+        user.preferred_language = language
 
-    type(user).get_most_relevant_transfer_usage = mocker.PropertyMock(
-        return_value=mock_get_most_relevant_transfer_usage)
-    menu = UssdMenuFactory(name=menu_name, display_key="ussd.kenya.{}".format(menu_name))
-    resulting_menu = KenyaUssdProcessor.custom_display_text(
-        menu, start_state, user)
+        # type(user).get_most_relevant_transfer_usage = mocker.PropertyMock(
+        #     return_value=mock_get_most_relevant_transfer_usage)
+        menu = UssdMenuFactory(name=menu_name, display_key="ussd.kenya.{}".format(menu_name))
+        resulting_menu = KenyaUssdProcessor.custom_display_text(
+            menu, start_state, user)
 
-    assert expected in resulting_menu
+        assert expected in resulting_menu

@@ -56,5 +56,5 @@ class FeedbackFactory(SQLAlchemyModelFactory):
 
 class TransferUsageFactory(SQLAlchemyModelFactory):
     class Meta:
-        model = Feedback
+        model = TransferUsage
         sqlalchemy_session = db.session

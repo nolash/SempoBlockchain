@@ -280,7 +280,7 @@ if __name__ == '__main__':
         {'name': 'Health', 'icon': 'message',
             'translations': {'en': 'Health', 'sw': 'Afya'}},
         {'name': 'General shop', 'icon': 'message', 'translations': {
-            'en': 'General shop', 'sw': 'Uchuuzi'}},
+            'en': 'General shop', 'sw': 'Duka la jumla'}},
         {'name': 'Environment', 'icon': 'message', 'translations': {
             'en': 'Environment', 'sw': 'Mazingira'}},
         {'name': 'Transport', 'icon': 'message', 'translations': {
@@ -296,7 +296,7 @@ if __name__ == '__main__':
         else:
             try:
                 usage = TransferUsage(name=business_category['name'], icon=business_category['icon'],
-                                      priority=1, default=True, translations=business_category['translations'])
+                                      priority=1, default=1, translations=business_category['translations'])
             except TransferUsageNameDuplicateException as e:
                 print(e)
         db.session.add(usage)

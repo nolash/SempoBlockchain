@@ -57,7 +57,7 @@ class KenyaUssdProcessor:
             recipient_phone = recipient.user_details()
             token = default_token(user)
             transaction_amount = ussd_session.get_data('transaction_amount')
-            transaction_reason = ussd_session.get_data('transaction_reason_translated')
+            transaction_reason = ussd_session.get_data('transaction_reason_i18n')
             return i18n_for(
                 user, menu.display_key,
                 recipient_phone=recipient_phone,
@@ -98,10 +98,10 @@ class KenyaUssdProcessor:
         if menu.name == 'directory_listing' or menu.name == 'send_token_reason':
             items_per_menu = 8
 
-            usages = user.get_most_relevant_transfer_usage()
-            KenyaUssdProcessor.store_transfer_usage(ussd_session, usages)
-            ussd_session.set_data('usage_menu', 1)
-            ussd_session.set_data('usage_menu_max', math.floor(len(usages)/items_per_menu))
+            most_relevant_usage_ids = ussd_session.session_data['transfer_usage_mapping']
+            current_usage_ids = most_relevant_usage_ids[:items_per_menu]
+            usages = TransferUsage.query.filter(
+                TransferUsage.id.in_(current_usage_ids)).all()
             menu_options = KenyaUssdProcessor.create_usages_list(usages[:items_per_menu], user)
             return i18n_for(
                 user, menu.display_key,

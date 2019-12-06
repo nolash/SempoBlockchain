@@ -6,6 +6,7 @@ The class contains methods responsible for validation of user input and processi
 the services provided by the  ussd app.
 """
 import re
+import math
 
 from transitions import Machine
 
@@ -173,13 +174,11 @@ class KenyaUssdStateMachine(Machine):
 
     def save_transaction_reason(self, user_input):
         chosen_transfer_usage = self.get_select_transfer_usage(user_input)
-        self.session.set_data('transaction_reason', chosen_transfer_usage.name)
-
         if self.user.preferred_language is not None and chosen_transfer_usage.translations is not None:
-            reason_translated = chosen_transfer_usage.translations[self.user.preferred_language]
+            transfer_reason = chosen_transfer_usage.translations[self.user.preferred_language]
         else:
-            reason_translated = None
-        self.session.set_data('transaction_reason_translated', reason_translated)
+            transfer_reason = chosen_transfer_usage.name
+        self.session.set_data('transaction_reason_i18n', transfer_reason)
         self.session.set_data('transaction_reason_id', chosen_transfer_usage.id)
 
     def save_transaction_reason_other(self, user_input):
@@ -199,7 +198,7 @@ class KenyaUssdStateMachine(Machine):
     def process_send_token_request(self, user_input):
         user = get_user_by_phone(self.session.get_data('recipient_phone'), "KE")
         amount = float(self.session.get_data('transaction_amount'))
-        reason_str = self.session.get_data('transaction_reason_translated')
+        reason_str = self.session.get_data('transaction_reason_i18n')
         reason_id = float(self.session.get_data('transaction_reason_id'))
         ussd_tasker.send_token(self.user, user, amount, reason_str, reason_id)
 
@@ -243,7 +242,17 @@ class KenyaUssdStateMachine(Machine):
         ussd_tasker.exchange_token(self.user, agent, amount)
 
     def store_transfer_usage(self, user_input):
-        pass
+        items_per_menu = 8
+        usages = self.user.get_most_relevant_transfer_usage()
+        transfer_usage_id_order = []
+        for usage in usages:
+            transfer_usage_id_order.append(usage.id)
+        if self.session.session_data is None:
+            self.session.session_data = {'transfer_usage_mapping': transfer_usage_id_order}
+        elif type(self.session.session_data) is dict:
+            self.session.session_data['transfer_usage_mapping'] = transfer_usage_id_order
+        self.session.set_data('usage_menu', 1)
+        self.session.set_data('usage_menu_max', math.floor(len(usages)/items_per_menu))
 
     def get_select_transfer_usage(self, user_input):
         selected_tranfer_usage_id = self.session.session_data['transfer_usage_mapping'][int(
