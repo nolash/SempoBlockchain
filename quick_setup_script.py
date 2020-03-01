@@ -1,3 +1,4 @@
+import sys
 from functools import reduce
 import requests
 import config
@@ -20,15 +21,16 @@ def load_account(address, amount_wei):
         {'to': address, 'from': w3.eth.accounts[0], 'value': amount_wei})
     return w3.eth.waitForTransactionReceipt(tx_hash)
 
-class Setup(object, tfa_token):
+class Setup(object):
 
     def get_api_token(self, email, password):
         r = requests.post(url=self.api_host + 'auth/request_api_token/',
                           headers=dict(Accept='application/json'),
                           json={
                               'email': email,
-                              'password': password
-                              'tfa_token': tfa_token,
+                              'password': password,
+                              'tfa_token': self.tfa_token,
+                              'phone': '0132423124',
                           })
 
         logg.debug("response get api token: %s", r)
@@ -266,9 +268,10 @@ class Setup(object, tfa_token):
 
         return r.json()['data']['organisation']['id']
 
-    def __init__(self, api_host='http://0.0.0.0:9000/api/v1/', email=None, password=None, api_token=None):
+    def __init__(self, api_host='http://0.0.0.0:9000/api/v1/', email=None, password=None, api_token=None, tfa_token=None):
 
         self.api_host = api_host
+        self.tfa_token = tfa_token
 
         if email and password:
             self.api_token = self.get_api_token(email, password)
@@ -317,6 +320,7 @@ def local_setup(token):
         api_host='http://0.0.0.0:9000/api/v1/',
         email=os.environ.get('LOCAL_EMAIL'),
         password=os.environ.get('LOCAL_PASSWORD'),
+        api_token=None,
         tfa_token=token,
     )
 
@@ -334,5 +338,5 @@ def local_setup(token):
 if __name__ == '__main__':
 
     # ge_setup()
-
+    logg.debug("setup with token %s", sys.argv[1])
     local_setup(sys.argv[1])

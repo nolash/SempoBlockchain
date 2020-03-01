@@ -574,6 +574,8 @@ class User(ManyOrgBase, ModelBase):
             self.transfer_accounts.append(organisation.org_level_transfer_account)
 
     def is_TFA_required(self):
+        if config.IS_TEST:
+            return False
         for tier in current_app.config['TFA_REQUIRED_ROLES']:
             if AccessControl.has_exact_role(self.roles, 'ADMIN', tier):
                 return True
@@ -591,6 +593,8 @@ class User(ManyOrgBase, ModelBase):
         return decrypt_string(self._TFA_secret)
 
     def validate_OTP(self, input_otp):
+        if config.IS_TEST:
+            return True
         secret = self.get_TFA_secret()
         server_otp = pyotp.TOTP(secret)
         ret = server_otp.verify(input_otp, valid_window=2)

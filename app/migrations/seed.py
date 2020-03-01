@@ -16,7 +16,7 @@ from server.models.token import Token, TokenType
 from server.exceptions import TransferUsageNameDuplicateException
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 app = None
 
 def print_section_title(text):
@@ -361,6 +361,7 @@ def create_master_user(organisation, email, password, master_user_account):
     master_user.set_TFA_secret()
     db.session.add(master_user)
     db.session.commit()
+    app.logger.info("token url %s", master_user.tfa_url)
    
     return master_user.encode_TFA_token()
 
@@ -411,6 +412,7 @@ if __name__ == '__main__':
     master_organisation = create_master_organisation(reserve_token)
     app.logger.debug("creating master user email %s account %s", sys.argv[1], sys.argv[3])
     master_user_token = create_master_user(master_organisation, sys.argv[1], sys.argv[2], sys.argv[3])
+    app.logger.debug("creaeting master used %s", master_user_token)
 
     create_float_wallet(app)
 

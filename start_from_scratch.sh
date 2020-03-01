@@ -98,7 +98,7 @@ sleep 5
 pushd app
 pushd migrations
 echo -e "\n>>> STARTING SEED SCRIPT\n"
-tfatoken=`python3 seed.py foo@bar.com baz 0xC855bC7519f627117c9e97B6EAFea5a30F294f72`
+tfatoken=`python3 seed.py foo@bar.com baz 0xC855bC7519f627117c9e97B6EAFea5a30F294f72 | tail -n 1 | cut -b 3- | tr "'" " " | sed -e 's/ //'`
 if [ "$?" -gt 0 ]; then
 	>&2 echo seed script failed
 	popd
@@ -129,8 +129,8 @@ sleep 5
 
 python3 quick_setup_script.py $tfatoken 
 
-echo "\n>>> KILL APP ($pid_ganache)\n"
+echo -e "\n>>> KILL APP ($pid_ganache)\n"
 kill -TERM $pid_app
-echo "\n>>> KILL GANACHE ($pid_ganache)\n"
+echo -e "\n>>> KILL GANACHE ($pid_ganache)\n"
 kill -TERM $pid_ganache
 
