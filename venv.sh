@@ -72,8 +72,7 @@ if [ -z "$py" ]; then
 	popd
 	py="$tmpd/usr/bin/python3.6"
 	pyconfd="$tmpd/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu"
-
-	# todo add virtualenv
+	export PYTHONPATH="$tmpd/usr/lib/python3.6/site-packages/setuptools"
 fi
 
 $($py -m wheel version &> /dev/null)
@@ -85,22 +84,29 @@ if [ $? -ne 0 ]; then
 	echo "virtualenv not found" && exit 1
 fi
 
-
 popd
-rm -rf $tmpd
-
+#rm -rf $tmpd
 
 #pyconfdbase=$(basename $pyconfd)
 pyconfdv="config-${pyver}m"
 $py -m venv venv
+if [ "$?" -gt 0 ]; then
+	>&2 echo "venv fail"
+	exit 1
+fi
 mkdir -vp venv/lib/python${pyver}/${pyconfdv}
 install -vD $pyconfd/* venv/lib/python${pyver}/${pyconfdv}/
 #mv venv/lib/python${pyver}/$pyconfdbase venv/lib/python${pyver}/config-${pyver}m
 source venv/bin/activate
-sh install.sh
+if [ "$?" -gt 0 ]; then
+	>&2 echo "venv fail"
+	exit 1
+fi
+bash install.sh
 pushd app
 npm install
+npm run-script build
 popd
 deactivate
 
-ln -vsf .sempoconfig $confd
+#ln -vsf .sempoconfig $confd

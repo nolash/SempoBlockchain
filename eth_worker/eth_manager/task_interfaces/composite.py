@@ -1,6 +1,11 @@
 from celery import signature
 from functools import partial
 from toolz import pipe
+from celery.contrib import rdb
+
+import logging
+logging.basicConfig(filename='/home/lash/celery.log', level=logging.DEBUG)
+logg = logging.getLogger('composite')
 
 import config
 from eth_manager import persistence_interface, utils, w3

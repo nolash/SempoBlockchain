@@ -16,6 +16,9 @@ import config
 
 import datetime
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logg = logging.getLogger('processor')
 
 class PreBlockchainError(Exception):
     pass
@@ -56,6 +59,7 @@ class BaseERC20Processor(ABC):
         return cipher_suite.decrypt(encoded_private_key.encode('utf-8')).decode('utf-8')
 
     def get_decimals(self):
+        logg.debug("foo %s", self.contract.address)
         return self.contract.functions.decimals().call()
 
     def cents_to_native_amount(self, cents):

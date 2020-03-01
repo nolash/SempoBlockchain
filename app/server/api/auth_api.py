@@ -16,6 +16,7 @@ from server.utils.amazon_ses import send_reset_email, send_activation_email, sen
 from server.utils.misc import decrypt_string
 
 import random
+import logging
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -282,7 +283,6 @@ class LoginAPI(MethodView):
         ]
 
         challenge = random.choice(challenges)
-
         # time.sleep(int(request.args.get('delay', 0)))
         # from functools import reduce
         # reduce(lambda x, y: x + y, range(0, int(request.args.get('count', 1))))
@@ -317,6 +317,7 @@ class LoginAPI(MethodView):
         password = post_data.get('password')
         tfa_token = post_data.get('tfa_token')
 
+        current_app.logger.debug("user %s password %s token %s", email, password, tfa_token)
         # First try to match email
         if email:
             user = User.query.filter_by(email=email).execution_options(show_all=True).first()

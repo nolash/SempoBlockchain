@@ -550,6 +550,7 @@ class User(ManyOrgBase, ModelBase):
         self.pin_reset_tokens = tokens
 
     def create_admin_auth(self, email, password, tier='view', organisation=None):
+        current_app.logger.debug("admin auth %s %s", email, password)
         self.email = email
         self.hash_password(password)
         self.set_held_role('ADMIN', tier)

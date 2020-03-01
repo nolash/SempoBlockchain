@@ -1,5 +1,6 @@
 import celery
 from celery import signals
+from celery.contrib import rdb
 
 import config
 import eth_manager.task_interfaces.composite

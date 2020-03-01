@@ -11,6 +11,9 @@ from server.utils.access_control import AccessControl
 import server.models.transfer_account
 from server.utils.misc import encrypt_string
 
+import logging
+logg = logging.getLogger('org')
+
 class Organisation(ModelBase):
     """
     Establishes organisation object that resources can be associated with.
@@ -131,6 +134,7 @@ class Organisation(ModelBase):
                 raise Exception("A master organisation already exists")
 
             self.is_master = True
+            logg.debug("create wallet")
             self.system_blockchain_address = bt.create_blockchain_wallet(
                 private_key=current_app.config['MASTER_WALLET_PRIVATE_KEY'],
                 wei_target_balance=0,

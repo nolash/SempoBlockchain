@@ -11,9 +11,13 @@ from server.models.ussd import UssdMenu
 from server.models.transfer_usage import TransferUsage
 from server.models.transfer_account import TransferAccount, TransferAccountType
 from server.models.organisation import Organisation
+from server.models.user import User
 from server.models.token import Token, TokenType
 from server.exceptions import TransferUsageNameDuplicateException
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+app = None
 
 def print_section_title(text):
     print(text)
@@ -347,6 +351,19 @@ def create_reserve_token(app):
     return None
 
 
+# TODO: this is a temporary workaround to get a minimum working install of system. it is not safe and must be changed
+def create_master_user(organisation, email, password, master_user_account):
+     
+    print_section_title('Creating/Updating Master User')
+
+    master_user = User(blockchain_address=master_user_account)
+    master_user.create_admin_auth(email, password, 'view', organisation)
+    master_user.set_TFA_secret()
+    db.session.add(master_user)
+    db.session.commit()
+   
+    return master_user.encode_TFA_token()
+
 def create_master_organisation(reserve_token):
 
     print_section_title('Creating/Updating Master Organisation')
@@ -381,17 +398,21 @@ def create_float_wallet(app):
         db.session.commit()
 
 # from app folder: python ./migations/seed.py
+# TODO validate input  & fetch from config instead
 if __name__ == '__main__':
-    current_app = create_app()
-    ctx = current_app.app_context()
+    app = create_app()
+    ctx = app.app_context()
     ctx.push()
 
     create_ussd_menus()
     create_business_categories()
 
-    reserve_token = create_reserve_token(current_app)
-    create_master_organisation(reserve_token)
+    reserve_token = create_reserve_token(app)
+    master_organisation = create_master_organisation(reserve_token)
+    app.logger.debug("creating master user email %s account %s", sys.argv[1], sys.argv[3])
+    master_user_token = create_master_user(master_organisation, sys.argv[1], sys.argv[2], sys.argv[3])
 
-    create_float_wallet(current_app)
+    create_float_wallet(app)
 
     ctx.pop()
+    print(master_user_token)

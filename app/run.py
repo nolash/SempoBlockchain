@@ -1,6 +1,9 @@
 #!flask/bin/python
 import os
 import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(parent_dir)

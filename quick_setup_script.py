@@ -3,6 +3,10 @@ import requests
 import config
 from time import sleep
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logg = logging.getLogger('quicksetup')
 
 def load_account(address, amount_wei):
     from web3 import (
@@ -16,7 +20,7 @@ def load_account(address, amount_wei):
         {'to': address, 'from': w3.eth.accounts[0], 'value': amount_wei})
     return w3.eth.waitForTransactionReceipt(tx_hash)
 
-class Setup(object):
+class Setup(object, tfa_token):
 
     def get_api_token(self, email, password):
         r = requests.post(url=self.api_host + 'auth/request_api_token/',
@@ -24,7 +28,12 @@ class Setup(object):
                           json={
                               'email': email,
                               'password': password
+                              'tfa_token': tfa_token,
                           })
+
+        logg.debug("response get api token: %s", r)
+        if r == None:
+            return ""
 
         return r.json()['auth_token']
 
@@ -303,11 +312,12 @@ def _base_setup(s, reserve_token_id):
     # bind_2 = s.bind_me_to_organisation_as_admin(foobar_org_id)
 
 
-def local_setup():
+def local_setup(token):
     s = Setup(
         api_host='http://0.0.0.0:9000/api/v1/',
         email=os.environ.get('LOCAL_EMAIL'),
-        password=os.environ.get('LOCAL_PASSWORD')
+        password=os.environ.get('LOCAL_PASSWORD'),
+        tfa_token=token,
     )
 
     reserve_token_id = s.create_reserve_token(
@@ -325,4 +335,4 @@ if __name__ == '__main__':
 
     # ge_setup()
 
-    local_setup()
+    local_setup(sys.argv[1])

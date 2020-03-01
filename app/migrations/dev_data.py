@@ -3,6 +3,7 @@ import os
 import random
 from uuid import uuid4
 from flask import g
+import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..", "..")))
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "..")))
@@ -20,6 +21,9 @@ from server.models.transfer_usage import TransferUsage
 from server.utils.transfer_enums import TransferTypeEnum, TransferSubTypeEnum
 
 from server.utils.user import create_transfer_account_user
+
+app = create_app()
+app.logger.setLevel(level=logging.DEBUG)
 
 def load_account(address, amount_wei):
     from web3 import (
@@ -39,7 +43,6 @@ def get_or_create_reserve_token(deploying_address, name, symbol):
     reserve_token = Token.query.filter_by(symbol=symbol).first()
     if reserve_token:
         return reserve_token
-
     else:
         reserve_token_address = bt.deploy_and_fund_reserve_token(
             deploying_address=deploying_address,
@@ -120,6 +123,7 @@ def get_or_create_organisation(name, org_token):
 def get_or_create_admin_user(email, password, admin_organisation):
     instance = User.query.filter_by(
         email=str(email).lower()).first()
+
     if instance:
         return instance
     else:
@@ -263,7 +267,6 @@ def _get_or_create_model_object(obj_class: db.Model, filter_kwargs: dict, **kwar
 
 
 def run_setup():
-    app = create_app()
     ctx = app.app_context()
     ctx.push()
 
@@ -279,7 +282,7 @@ def run_setup():
     master_system_address = master_organisation.system_blockchain_address
 
     load_account(master_system_address, int(1e18))
-    reserve_token = get_or_create_reserve_token(master_system_address, 'AUD Token', 'AUD')
+    reserve_token = get_or_create_reserve_token(master_system_address, config.RESERVE_TOKEN_NAME, config.RESERVE_TOKEN_SYMBOL)
 
     master_organisation.token = reserve_token
 
@@ -289,7 +292,8 @@ def run_setup():
 
     print('Creating admin user')
     amount_to_load = 1000
-    admin_user = get_or_create_admin_user('admin@withsempo.com', 'TestPassword', new_organisation)
+    #admin_user = get_or_create_admin_user('admin@withsempo.com', 'TestPassword', new_organisation)
+    admin_user = get_or_create_admin_user('ge@sechost.info', 'TestPassword', new_organisation)
     admin_transfer_account = admin_user.transfer_account
     load_account(admin_transfer_account.blockchain_address, int(20e18))
     send_eth_task = bt.send_eth(

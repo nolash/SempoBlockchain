@@ -13,6 +13,7 @@ def get_js_bundle_filename():
     bundle_directory = os.path.join(current_app.config['BASEDIR'], "static/javascript/dist")
     globs = glob.glob(os.path.join(bundle_directory, 'main.bundle.*.js'))
 
+    current_app.logger.debug("globs %s bundle %s", globs, bundle_directory)
     # We need the most recent file because webpack doesn't clean when dev-ing
     latest_file = max(globs, key=os.path.getctime)
 
@@ -20,7 +21,6 @@ def get_js_bundle_filename():
 
 @index_view.route('/')
 def index():
-
     return render_template('index.html', js_bundle_main = get_js_bundle_filename())
 
 @index_view.route('/<accounts>')

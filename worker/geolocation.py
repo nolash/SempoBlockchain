@@ -2,7 +2,9 @@ import googlemaps
 
 import config
 
-gmaps = googlemaps.Client(key=config.GOOGLE_GEOCODE_KEY)
+gmaps = None
+if config.GOOGLE_GEOCODE_KEY != "":
+    gmaps = googlemaps.Client(key=config.GOOGLE_GEOCODE_KEY)
 
 def calculate_address_latlng(address):
 

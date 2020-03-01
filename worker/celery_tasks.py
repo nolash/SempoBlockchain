@@ -25,22 +25,24 @@ ETH_CHECK_TRANSACTION_RETRIES = config.ETH_CHECK_TRANSACTION_RETRIES
 ETH_CHECK_TRANSACTION_RETRIES_TIME_LIMIT = config.ETH_CHECK_TRANSACTION_RETRIES_TIME_LIMIT
 ETH_CHECK_TRANSACTION_BASE_TIME = config.ETH_CHECK_TRANSACTION_BASE_TIME
 
-BITCOIN_CHECK_TRANSACTION_BASE_TIME = config.BITCOIN_CHECK_TRANSACTION_BASE_TIME
-BITCOIN_CHECK_TRANSACTION_RETRIES = config.BITCOIN_CHECK_TRANSACTION_RETRIES
-
+BITCOIN_CHECK_TRANSACTION_BASE_TIME = None
+BITCOIN_CHECK_TRANSACTION_RETRIES = None
 if config.IS_USING_BITCOIN:
+    BITCOIN_CHECK_TRANSACTION_BASE_TIME = config.BITCOIN_CHECK_TRANSACTION_BASE_TIME
+    BITCOIN_CHECK_TRANSACTION_RETRIES = config.BITCOIN_CHECK_TRANSACTION_RETRIES
     blockchain_processor = BitcoinProcessor(config.BITCOIN_MASTER_WALLET_WIF, config.IS_BITCOIN_TESTNET)
 
 elif config.ETH_CONTRACT_TYPE == 'mintable':
     print('~~~USING MINTABLE~~~')
 
     ERC20_config['contract_abi_string'] = mintable_abi.abi
-    ERC20_config['contract_address'] = config.ETH_CONTRACT_ADDRESS
+    #ERC20_config['contract_address'] = config.ETH_CONTRACT_ADDRESS
+    ERC20_config['contract_address'] = config.RESERVE_TOKEN_ADDRESS
     ERC20_config['contract_owner_private_key'] = config.ETH_OWNER_PRIVATE_KEY
     expected_contract_name = config.ETH_CONTRACT_NAME
 
     blockchain_processor = MintableERC20Processor(**ERC20_config)
-    blockchain_processor.check_contract_name(expected_contract_name)
+    #blockchain_processor.check_contract_name(expected_contract_name)
 
 elif config.ETH_CONTRACT_TYPE == 'ccv':
     print('~~~USING CCV~~~')
@@ -61,7 +63,7 @@ else:
 
     blockchain_processor = UnmintableERC20Processor(**ERC20_config)
 
-rekogniser = rekognition.Rekogniser()
+#rekogniser = rekognition.Rekogniser()
 
 
 # def attempt_atomic_celery_task(self, task, *args, **kwargs):
