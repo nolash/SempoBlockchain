@@ -1,3 +1,5 @@
+import config
+
 from server.utils.access_control import AccessControl
 
 def test_new_sempo_admin_user(new_sempo_admin_user):
@@ -96,7 +98,10 @@ def test_tfa_required(authed_sempo_admin_user):
     import config
     tiers = config.TFA_REQUIRED_ROLES
     authed_sempo_admin_user.set_held_role('ADMIN', 'view')
+    config.IS_TEST = True
     assert authed_sempo_admin_user.is_TFA_required() is False
+    config.IS_TEST = False
+    assert authed_sempo_admin_user.is_TFA_required() is True
     for tier in tiers:
         authed_sempo_admin_user.set_held_role('ADMIN', tier)
         assert authed_sempo_admin_user.is_TFA_required() is True

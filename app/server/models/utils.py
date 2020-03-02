@@ -241,6 +241,7 @@ class ManyOrgBase(object):
             # exceptions to this rule...
             plural = name + 'es'
 
-        return db.relationship("Organisation",
+        rels = db.relationship("Organisation",
                                secondary=organisation_association_table,
                                back_populates=plural)
+        return rels

@@ -148,9 +148,8 @@ class RegisterAPI(MethodView):
 
         db.session.flush()
 
-        if exact_match:
+        if exact_match or tier == 'sempoadmin':
             user.is_activated = True
-
             auth_token = user.encode_auth_token()
 
             # Possible Outcomes:

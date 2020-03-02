@@ -118,6 +118,7 @@ def requires_auth(f=None,
                 }
                 return make_response(jsonify(response_object)), 401
 
+            current_app.logger.debug("org: %s", org)
             g.active_organisation = org
 
             return f(*args, **kwargs)
@@ -298,7 +299,8 @@ def verify_slack_requests(f=None):
 
 def get_user_organisations(user):
     active_organisation = getattr(g, "active_organisation", None) or user.fallback_active_organisation()
-
+    if active_organisation == None:
+        active_organisation = Organisation.query.first()
     organisations = dict(
         active_organisation_name=active_organisation.name,
         active_organisation_id=active_organisation.id,

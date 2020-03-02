@@ -40,6 +40,7 @@ class ChannelType(enum.Enum):
     TWILIO = "tw"
     AFRICAS_TALKING = "at"
     MESSAGEBIRD = "mb"
+    CONSOLE = "."
 
 
 class MessageProcessor(object):
@@ -54,9 +55,10 @@ class MessageProcessor(object):
             return ChannelType.TWILIO
         if phone.startswith("+254"):
             return ChannelType.AFRICAS_TALKING
-        else:
-            # what should fallback be?
+        elif current_app.config['IS_PRODUCTION']:
             return ChannelType.TWILIO
+        else:
+            return ChannelType.CONSOLE
 
     def send_message(self, to_phone, message):
         if current_app.config['IS_TEST'] or current_app.config['IS_PRODUCTION']:
@@ -68,6 +70,9 @@ class MessageProcessor(object):
                 self._send_messagebird_message(to_phone, message)
             if channel == ChannelType.AFRICAS_TALKING:
                 self._send_at_message(to_phone, message)
+            else:
+            # should probably be desktop notification instead, but at least better than TWILIO that it was before
+                current_app.logger.info(">>> SMS MESSAGE to %s: %s", to_phone, message)
         else:
             print(f'"IS NOT PRODUCTION", not sending SMS:\n{message}')
 

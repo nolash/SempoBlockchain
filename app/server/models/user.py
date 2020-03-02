@@ -353,6 +353,7 @@ class User(ManyOrgBase, ModelBase):
         return find_transfer_accounts_with_matching_token(self, token)
 
     def fallback_active_organisation(self):
+        current_app.logger.debug("active org: %s %s %s", len(self.organisations), self.default_organisation, self.id)
         if len(self.organisations) == 0:
             return None
 
@@ -559,10 +560,13 @@ class User(ManyOrgBase, ModelBase):
             self.add_user_to_organisation(organisation, is_admin=True)
 
     def add_user_to_organisation(self, organisation: Organisation, is_admin=False):
+        current_app.logger.debug("add user to org before: %s %s %s", self.default_organisation, organisation, organisation.id)
+        # TODO: this is not being committed to database
         if not self.default_organisation:
             self.default_organisation = organisation
-
+            self.default_organisation_id = organisation.id
         self.organisations.append(organisation)
+        current_app.logger.debug("add user to org after: %s %s %s", self.default_organisation, organisation, organisation.id)
 
         if is_admin and organisation.org_level_transfer_account_id:
             if organisation.org_level_transfer_account is None:

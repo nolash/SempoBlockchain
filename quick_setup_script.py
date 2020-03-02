@@ -1,13 +1,8 @@
-import sys
 from functools import reduce
 import requests
 import config
 from time import sleep
 import os
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
-logg = logging.getLogger('quicksetup')
 
 def load_account(address, amount_wei):
     from web3 import (
@@ -28,14 +23,8 @@ class Setup(object):
                           headers=dict(Accept='application/json'),
                           json={
                               'email': email,
-                              'password': password,
-                              'tfa_token': self.tfa_token,
-                              'phone': '0132423124',
+                              'password': password
                           })
-
-        logg.debug("response get api token: %s", r)
-        if r == None:
-            return ""
 
         return r.json()['auth_token']
 
@@ -268,10 +257,9 @@ class Setup(object):
 
         return r.json()['data']['organisation']['id']
 
-    def __init__(self, api_host='http://0.0.0.0:9000/api/v1/', email=None, password=None, api_token=None, tfa_token=None):
+    def __init__(self, api_host='http://0.0.0.0:9000/api/v1/', email=None, password=None, api_token=None):
 
         self.api_host = api_host
-        self.tfa_token = tfa_token
 
         if email and password:
             self.api_token = self.get_api_token(email, password)
@@ -315,13 +303,11 @@ def _base_setup(s, reserve_token_id):
     # bind_2 = s.bind_me_to_organisation_as_admin(foobar_org_id)
 
 
-def local_setup(token):
+def local_setup():
     s = Setup(
         api_host='http://0.0.0.0:9000/api/v1/',
         email=os.environ.get('LOCAL_EMAIL'),
-        password=os.environ.get('LOCAL_PASSWORD'),
-        api_token=None,
-        tfa_token=token,
+        password=os.environ.get('LOCAL_PASSWORD')
     )
 
     reserve_token_id = s.create_reserve_token(
@@ -338,5 +324,5 @@ def local_setup(token):
 if __name__ == '__main__':
 
     # ge_setup()
-    logg.debug("setup with token %s", sys.argv[1])
-    local_setup(sys.argv[1])
+
+    local_setup()

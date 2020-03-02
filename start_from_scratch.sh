@@ -12,9 +12,29 @@ if [ "$1" != 'REALLY' ]; then
 	exit
 fi
 
-d=`realpath $(dirname ${BASH_SOURCE[0]})`
+# dirs and paths
 
-# prerequisites
+d=`realpath $(dirname ${BASH_SOURCE[0]})`
+d_log=$d/var/log/sarafu
+d_lib=$d/var/lib/sarafu
+d_run=$d/var/run/sarafu
+
+for p in `find $d_run -iname '*.pid'`; do
+	pp=`cat $p`
+	echo "killing pid $pp"
+	kill -TERM $pp
+done
+
+mkdir -p $d_log
+mkdir -p $d_lib
+mkdir -p $d_run
+
+. quick_env.sh
+export PYTHONPATH=$d/eth_worker/eth_manager:$d/eth_worker:$d/eth_worker/eth_manager/task_interfaces
+
+GIT_BANCOR_COMMIT_REQUIRED=5cf00451da0cc51db1d4b76d7e8b482d085f9423
+
+# verify tool dependencies
 
 # node version must match bancor requirement
 node_bin=`which node`
@@ -37,22 +57,34 @@ if [ "$node_version" != "v${node_version_bancor}" ]; then
 	fi
 fi
 
-. quick_env.sh
 
 # prepare the blockchainy part
 
 # fire up ganache
 
 ganache_bin=`which ganache-cli`
-#$ganache_bin -i 42 -l 800000000 -g 2000000000 --debug -v -s 666 -p 7545 --acctKeys $d/run/accounts 2> $d/log/ganache.log &
-$ganache_bin -i 42 -l 800000000 -g 2000000000 -s 666 -p 7545 --acctKeys $d/run/accounts 2> $d/log/ganache.log &
+mkdir -p $d_lib/ganache.db
+rm $d_lib/ganache.db/*
+$ganache_bin -i 42 -l 800000000 -g 2000000000 -s 666 -p 7545 --acctKeys $d_lib/ganache.accounts --db $d_lib/ganache.db 2> $d_log/ganache.log &
 pid_ganache=$!
-
+echo -n $pid_ganache > $d_run/ganache.pid
+echo "waiting 3 secs for ganache to start (pid $pid_ganache)..."
 sleep 3
 
 bancor_dir=${BANCOR_DIR:-$2}
+if [ ! -d $bancor_dir ]; then
+	>&2 echo "bancor dir not a dir"
+	exit 1
+fi
+
+
 pushd $bancor_dir
-if [ ! -d "node_modules" ]; then
+bancor_commit=`git rev-parse HEAD`
+if [ "$bancor_commit" != "$GIT_BANCOR_COMMIT_REQUIRED" ]; then
+	>&2 echo "wrong bancor version, need $GIT_BANCOR_COMMIT_REQUIRED, have $bancor_commit"
+	exit 1
+fi
+if [ ! -d "node_modules" ]; then # risky, doesn't check the contents
 	npm install
 fi
 truffle=${bancor_dir}/node_modules/truffle/build/cli.bundled.js
@@ -70,6 +102,7 @@ popd
 # note in section public/local_config.ini;
 # contract addresses will always be the same if deployed with same source and same network settings in ganache
 
+# todo move config to etc
 rm -rf $d/config_files/secret
 mkdir -vp $d/config_files/secret
 pushd config_files
@@ -89,10 +122,11 @@ psql -U postgres -d sarafu_eth -f schema/sarafu_eth_schema.sql
 # start the celery task manager
 # this is needed for seeing the bootstrap data
 
-export PYTHONPATH=$d/eth_worker/eth_manager:$d/eth_worker:$d/eth_worker/eth_manager/task_interfaces
 echo -e "\n>>> STARTING CELERY\n"
 celery -E -A celery_tasks worker &
 pid_celery=$!
+echo -n $pid_celery > $d_run/celery.pid
+echo "waiting 5 secs for ganache to start (pid $pid_celery)..."
 sleep 5
 
 pushd app
@@ -118,19 +152,19 @@ popd
 
 # run the actual app for the setup
 
-echo "\n>>> KILL CELERY ($pid_celery)\n"
+#python3 run.py &
+#pid_app=$!
+#popd
+#sleep 5
+
+#python3 quick_setup_script.py $tfatoken 
+
+echo -e "\n>>> KILL CELERY ($pid_celery)\n"
 kill -TERM $pid_celery
-sleep 3
-
-python3 run.py &
-pid_app=$!
-popd
-sleep 5
-
-python3 quick_setup_script.py $tfatoken 
-
-echo -e "\n>>> KILL APP ($pid_ganache)\n"
-kill -TERM $pid_app
+rm -f $d_run/celery.pid
+#echo -e "\n>>> KILL APP ($pid_ganache)\n"
+#kill -TERM $pid_app
 echo -e "\n>>> KILL GANACHE ($pid_ganache)\n"
 kill -TERM $pid_ganache
+rm -f $d_run/ganache.pid
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export LOCAL_EMAIL=foo@bar.com
-export LOCAL_PASSWORD=baz
+export LOCAL_EMAIL=foo@sechost.info
+export LOCAL_PASSWORD=trala-la
 export DATABASE_USER=postgres
 export DATABASE_PASSWORD=
