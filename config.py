@@ -162,6 +162,9 @@ DATABASE_HOST = config_parser['DATABASE']['host']
 DATABASE_NAME = config_parser['DATABASE'].get('database') \
                 or common_secrets_parser['DATABASE']['database']
 
+DATABASE_PORT = config_parser['DATABASE']['port'] \
+                or common_secrets_parser['DATABASE']['port']
+
 ETH_DATABASE_NAME = config_parser['DATABASE'].get('eth_database') \
                     or common_secrets_parser['DATABASE']['eth_database']
 
@@ -179,8 +182,8 @@ or anywhere you care about workers actually running you should shut down and adj
 def get_database_uri(name, host, censored=True):
     return 'postgresql://{}:{}@{}:{}/{}'.format(DATABASE_USER,
                                                 '*******' if censored else DATABASE_PASSWORD,
-                                                host,
-                                                config_parser['DATABASE']['port'] or common_secrets_parser['DATABASE']['port'],
+                                                DATABASE_HOST,
+                                                DATABASE_PORT,
                                                 name)
 
 

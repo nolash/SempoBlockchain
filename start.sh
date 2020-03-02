@@ -14,7 +14,7 @@ done
 pushd $d
 
 # is this necessary now?
-#. quick_env.sh
+. quick_env.sh
 
 ganache_bin=`which ganache-cli`
 $ganache_bin -i 42 -l 800000000 -g 2000000000 -s 666 -p 7545 --acctKeys $d_lib/ganache.accounts --db $d_lib/ganache.db 2> $d_log/ganache.log &
