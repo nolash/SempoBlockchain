@@ -2,14 +2,18 @@
 
 # Author: Louis Holbrook <dev@holbrook.no> https://holbrook.no
 # License: GPLv3
+# GPG: 0826EDA1702D1E87C6E2875121D2E7BB88C2A746
+# Description: Create a 100% clean deployment of the sarafu platform for use in development
 #
-# this script creates a 100% clean deployment of the sarafu platform
-# for use in development
-# it is not yet done and may not exit cleanly
+# Script is not in safe state and may not exit cleanly; you might have to manually kill celery and ganache
 
 if [ "$1" != 'REALLY' ]; then
 	>&2 echo arg 1 must be "REALLY"
-	exit
+	exit 1
+fi
+if [ ! -d "$2" ]; then
+	>&2 echo arg 2 must be a directory
+	exit 1
 fi
 
 # dirs and paths

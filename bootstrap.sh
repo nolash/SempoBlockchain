@@ -1,6 +1,11 @@
 #!/bin/bash
 
-# the dependencies in Debians are quirky; libmysqlclient-dev and npm are in conflict.
+# Author: Louis Holbrook <dev@holbrook.no> https://holbrook.no
+# License: GPLv3
+# Description: Sets up virtualenv with the correct python interpreter and installs module dependencies for python and node
+# 
+# the dependencies in Debians are quirky; libmysqlclient-dev (mysql_config) and npm (node) are in conflict.
+# to work around it use nvm to install node
 which node
 if [ $? -ne 0 ]; then
 	2>&1 echo "node missing" && exit 1
@@ -18,9 +23,11 @@ if [ $? -ne 0 ]; then
 fi
 
 wd=$(realpath $(dirname $0))
-confd=$wd/config_files
+#confd=$wd/config_files # config_files now in repo, not necessary to create it
 pushd $wd
 
+# check whether python 3.6 is the system python
+# breaks if 3.6 is among multiple 3.x systems are installed, and python3 does not point to 3.6
 pyver='3.6'
 py=''
 pyconfd=''
@@ -32,10 +39,13 @@ if [ -d $pylibd ]; then
 	fi
 fi
 
+# create temporary build dir
 tmpd=$wd/.tmp
 mkdir -vp $tmpd
 pushd $tmpd
 
+# if python is not in the path
+# download it along with virtualenv and build
 if [ -z "$py" ]; then
 	pythonurl='https://www.python.org/ftp/python/3.6.10/Python-3.6.10.tgz'
 	sigurl='https://www.python.org/ftp/python/3.6.10/Python-3.6.10.tgz.asc'
@@ -75,6 +85,8 @@ if [ -z "$py" ]; then
 	export PYTHONPATH="$tmpd/usr/lib/python3.6/site-packages/setuptools"
 fi
 
+# if system python lacks wheel or venv then fail
+# by checking here we catch faulty new build of 3.6
 $($py -m wheel version &> /dev/null)
 if [ $? -ne 0 ]; then
 	echo "wheel not found" && exit 1
@@ -85,28 +97,37 @@ if [ $? -ne 0 ]; then
 fi
 
 popd
-#rm -rf $tmpd
 
-#pyconfdbase=$(basename $pyconfd)
-pyconfdv="config-${pyver}m"
+# create the virtualenv
 $py -m venv venv
 if [ "$?" -gt 0 ]; then
 	>&2 echo "venv fail"
 	exit 1
 fi
+
+# remove the build dir
+rm -rf $tmpd
+
+# install missing config-3.6m files that virtualenv doesn't put in
+pyconfdv="config-${pyver}m"
 mkdir -vp venv/lib/python${pyver}/${pyconfdv}
 install -vD $pyconfd/* venv/lib/python${pyver}/${pyconfdv}/
-#mv venv/lib/python${pyver}/$pyconfdbase venv/lib/python${pyver}/config-${pyver}m
+
+# turn on virtualenv
 source venv/bin/activate
 if [ "$?" -gt 0 ]; then
 	>&2 echo "venv fail"
 	exit 1
 fi
+
+# recursive install dependencies for python
 bash install.sh
 pushd app
+
+# install dependencies for node
 npm install
 npm run-script build
+
+# finish up
 popd
 deactivate
-
-#ln -vsf .sempoconfig $confd
