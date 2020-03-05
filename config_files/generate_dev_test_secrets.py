@@ -41,7 +41,7 @@ def generate_specific_secrets(write_path):
     add_val_sp = partial(add_val, specific_secrets_parser)
 
     APP = 'APP'
-    add_val_sp(APP, 'password_pepper', base64.b64encode(os.urandom(32)))
+    add_val_sp(APP, 'password_pepper', str(base64.b64encode(os.urandom(32)), encoding='ascii')
     add_val_sp(APP, 'secret_key', rand_hex(32))
     add_val_sp(APP, 'ecdsa_secret', rand_hex(32))
     add_val_sp(APP, 'basic_auth_username', 'interal_basic_auth')
@@ -49,7 +49,7 @@ def generate_specific_secrets(write_path):
 
     DATABASE = 'DATABASE'
     add_val_sp(DATABASE, 'user', 'postgres')
-    add_val_sp(DATABASE, 'password', 'password')
+    add_val_sp(DATABASE, 'password', '')
 
     ETHEREUM = 'ETHEREUM'
     add_val_sp(ETHEREUM, 'master_wallet_private_key', eth_pk())
