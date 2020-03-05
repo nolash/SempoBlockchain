@@ -126,6 +126,10 @@ popd
 
 dropdb -U postgres -h 127.0.0.1 sarafu
 dropdb -U postgres -h 127.0.0.1 sarafu_eth
+dropuser -U postgres -h 127.0.0.1 read_only
+dropuser -U postgres -h 127.0.0.1 accenture
+createuser -U postgres -h 127.0.0.1 read_only
+createuser -U postgres -h 127.0.0.1 accenture
 createdb -U postgres -h 127.0.0.1 sarafu
 createdb -U postgres -h 127.0.0.1 sarafu_eth
 psql -U postgres -h 127.0.0.1 -d sarafu -f schema/sarafu_schema.sql
