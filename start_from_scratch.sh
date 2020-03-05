@@ -125,6 +125,10 @@ createdb -U postgres sarafu
 createdb -U postgres sarafu_eth
 psql -U postgres -d sarafu -f schema/sarafu_schema.sql
 psql -U postgres -d sarafu_eth -f schema/sarafu_eth_schema.sql
+if [ "$?" -gt 0 ]; then
+	>&2 echo "db setup fail"
+	exit 1
+fi
 
 # start the celery task manager
 # this is needed for seeing the bootstrap data
