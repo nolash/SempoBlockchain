@@ -75,7 +75,7 @@ echo -n $pid_ganache > $d_run/ganache.pid
 echo "waiting 3 secs for ganache to start (pid $pid_ganache)..."
 sleep 3
 
-bancor_dir=${BANCOR_DIR:-$2}
+bancor_dir=$(dirname $(realpath ${BANCOR_DIR:-$2}))
 if [ ! -d $bancor_dir ]; then
 	>&2 echo "bancor dir not a dir"
 	exit 1
@@ -91,14 +91,19 @@ fi
 if [ ! -d "node_modules" ]; then # risky, doesn't check the contents
 	npm install
 fi
-if [ ! -f${bancor_dir}/node_modules/truffle/build/cli.bundled.js ]; then
+if [ ! -f ${bancor_dir}/node_modules/truffle/build/cli.bundled.js ]; then
 	>&2 echo "cannot find truffle bin"
-fi	
+	exit 1
+fi
 truffle=${bancor_dir}/node_modules/truffle/build/cli.bundled.js
 pushd solidity
 
 
 $truffle --network development migrate
+if [ "$?" -gt 0 ]; then
+	>&2 echo "truffle migrate fail"
+	exit 1
+fi
 popd
 popd
 
