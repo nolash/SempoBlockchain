@@ -91,6 +91,9 @@ fi
 if [ ! -d "node_modules" ]; then # risky, doesn't check the contents
 	npm install
 fi
+if [ ! -f${bancor_dir}/node_modules/truffle/build/cli.bundled.js ]; then
+	>&2 echo "cannot find truffle bin"
+fi	
 truffle=${bancor_dir}/node_modules/truffle/build/cli.bundled.js
 pushd solidity
 
