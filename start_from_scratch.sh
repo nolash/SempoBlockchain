@@ -75,7 +75,7 @@ echo -n $pid_ganache > $d_run/ganache.pid
 echo "waiting 3 secs for ganache to start (pid $pid_ganache)..."
 sleep 3
 
-bancor_dir=$(dirname $(realpath ${BANCOR_DIR:-$2}))
+bancor_dir=$(realpath ${BANCOR_DIR:-$2})
 if [ ! -d $bancor_dir ]; then
 	>&2 echo "bancor dir not a dir"
 	exit 1
