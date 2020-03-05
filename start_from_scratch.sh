@@ -119,12 +119,13 @@ popd
 # purge old database
 # and reinstall schema
 
-dropdb -U postgres sarafu
-dropdb -U postgres sarafu_eth
-createdb -U postgres sarafu
-createdb -U postgres sarafu_eth
-psql -U postgres -d sarafu -f schema/sarafu_schema.sql
-psql -U postgres -d sarafu_eth -f schema/sarafu_eth_schema.sql
+dropdb -U postgres -h 127.0.0.1 sarafu
+dropdb -U postgres -h 127.0.0.1 sarafu_eth
+createdb -U postgres -h 127.0.0.1 sarafu
+createdb -U postgres -h 127.0.0.1 sarafu_eth
+psql -U postgres -h 127.0.0.1 -d sarafu -f schema/sarafu_schema.sql
+psql -U postgres -h 127.0.0.1 -d sarafu_eth -f schema/sarafu_eth_schema.sql
+
 if [ "$?" -gt 0 ]; then
 	>&2 echo "db setup fail"
 	exit 1
