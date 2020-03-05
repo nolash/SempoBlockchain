@@ -118,7 +118,7 @@ popd
 rm -rf $d/config_files/secret
 mkdir -vp $d/config_files/secret
 pushd config_files
-python3 generate_dev_test_secrets_ge.py
+python3 generate_dev_test_secrets.py
 popd
 
 # purge old database
