@@ -170,10 +170,6 @@ fi
 #fi
 popd
 
-# make sure the app contents are built
-npm run build
-
-
 # run the actual app for the setup
 
 #python3 run.py &
