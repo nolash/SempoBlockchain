@@ -29,9 +29,9 @@ for p in `find $d_run -iname '*.pid'`; do
 	kill -TERM $pp
 done
 
-mkdir -p $d_log
-mkdir -p $d_lib
-mkdir -p $d_run
+mkdir -vp $d_log
+mkdir -vp $d_lib
+mkdir -vp $d_run
 
 . quick_env.sh
 export PYTHONPATH=$d/eth_worker/eth_manager:$d/eth_worker:$d/eth_worker/eth_manager/task_interfaces
