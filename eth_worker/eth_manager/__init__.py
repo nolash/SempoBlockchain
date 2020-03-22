@@ -1,8 +1,6 @@
 # https://stackoverflow.com/questions/54617308/pip-install-produces-the-following-error-on-mac-error-command-gcc-failed-wit
 # python3.7 / concurrent / futures/thread.py line 135 was originally self._work_queue = queue.SimpleQueue()
 from celery import Celery
-import sentry_sdk
-from sentry_sdk.integrations.celery import CeleryIntegration
 import redis, requests
 from time import sleep
 
@@ -37,7 +35,10 @@ from eth_manager.contract_registry import ContractRegistry
 from eth_manager.exceptions import WalletExistsError
 from eth_manager import utils
 
-sentry_sdk.init(config.SENTRY_SERVER_DSN, integrations=[CeleryIntegration()])
+if config.IS_USING_SENTRY:
+    import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    sentry_sdk.init(config.SENTRY_SERVER_DSN, integrations=[CeleryIntegration()])
 
 eth_config = dict()
 eth_config['ethereum_chain_id'] = config.ETH_CHAIN_ID
