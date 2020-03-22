@@ -4,13 +4,16 @@ from requests.auth import HTTPBasicAuth
 
 import config
 
-from worker.bitcoin_processor import BitcoinProcessor
 from worker.ethereum_processor import MintableERC20Processor, UnmintableERC20Processor, PreBlockchainError
 from worker import celery_app
 from worker.ABIs import standard_erc20_abi, ccv_abi, mintable_abi, dai_abi
-from worker import rekognition
-from worker import geolocation
-from worker import ip_location
+
+if config.IS_USING_REKOGNITION:
+    from worker import rekognition
+
+if config.IS_USING_GEOLOCATION:
+    from worker import geolocation
+    from worker import ip_location
 
 from celery.exceptions import MaxRetriesExceededError
 
@@ -25,13 +28,18 @@ ETH_CHECK_TRANSACTION_RETRIES = config.ETH_CHECK_TRANSACTION_RETRIES
 ETH_CHECK_TRANSACTION_RETRIES_TIME_LIMIT = config.ETH_CHECK_TRANSACTION_RETRIES_TIME_LIMIT
 ETH_CHECK_TRANSACTION_BASE_TIME = config.ETH_CHECK_TRANSACTION_BASE_TIME
 
-BITCOIN_CHECK_TRANSACTION_BASE_TIME = config.BITCOIN_CHECK_TRANSACTION_BASE_TIME
-BITCOIN_CHECK_TRANSACTION_RETRIES = config.BITCOIN_CHECK_TRANSACTION_RETRIES
+BLOCKCHAIN_CHECK_TRANSACTION_RETRIES = ETH_CHECK_TRANSACTION_RETRIES
+BLOCKCHAIN_CHECK_TRANSACTION_RETRIES_TIME_LIMIT = ETH_CHECK_TRANSACTION_RETRIES_TIME_LIMIT
+BLOCKCHAIN_CHECK_TRANSACTION_BASE_TIME = ETH_CHECK_TRANSACTION_BASE_TIME
 
 if config.IS_USING_BITCOIN:
     blockchain_processor = BitcoinProcessor(config.BITCOIN_MASTER_WALLET_WIF, config.IS_BITCOIN_TESTNET)
+    BITCOIN_CHECK_TRANSACTION_BASE_TIME = config.BITCOIN_CHECK_TRANSACTION_BASE_TIME
+    BITCOIN_CHECK_TRANSACTION_RETRIES = config.BITCOIN_CHECK_TRANSACTION_RETRIES
+
 
 elif config.ETH_CONTRACT_TYPE == 'mintable':
+    from worker.bitcoin_processor import BitcoinProcessor
     print('~~~USING MINTABLE~~~')
 
     ERC20_config['contract_abi_string'] = mintable_abi.abi
@@ -61,7 +69,9 @@ else:
 
     blockchain_processor = UnmintableERC20Processor(**ERC20_config)
 
-rekogniser = rekognition.Rekogniser()
+rekogniser = None
+if config.IS_USING_REKOGNITION:
+    rekogniser = rekognition.Rekogniser()
 
 
 # def attempt_atomic_celery_task(self, task, *args, **kwargs):
@@ -246,7 +256,8 @@ def check_whether_transaction_sent_to_pool(self, submit_result):
             raise e
 
 
-@celery_app.task(bind=True, max_retries=BITCOIN_CHECK_TRANSACTION_RETRIES, soft_time_limit=300)
+#@celery_app.task(bind=True, max_retries=BITCOIN_CHECK_TRANSACTION_RETRIES, soft_time_limit=300)
+@celery_app.task(bind=True, max_retries=BLOCKCHAIN_CHECK_TRANSACTION_RETRIES, soft_time_limit=300)
 def check_transaction_status_in_pool(self, check_sent_to_pool_result):
 
     transaction_hash, blockchain_transaction_ids = check_sent_to_pool_result
@@ -255,7 +266,7 @@ def check_transaction_status_in_pool(self, check_sent_to_pool_result):
         success = blockchain_processor.check_transaction_status_in_pool(transaction_hash, blockchain_transaction_ids)
 
         if not success:
-            self.retry(countdown=BITCOIN_CHECK_TRANSACTION_BASE_TIME * 2 ** self.request.retries)
+            self.retry(countdown=BLOCKCHAIN_CHECK_TRANSACTION_BASE_TIME * 2 ** self.request.retries)
 
     except MaxRetriesExceededError:
 

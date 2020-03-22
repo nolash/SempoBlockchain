@@ -1,4 +1,4 @@
-import os, configparser, boto3, hashlib, datetime
+import os, configparser, hashlib, datetime
 from eth_keys import keys
 from eth_utils import keccak
 
@@ -45,6 +45,8 @@ else:
     load_from_s3 = False
 
 if load_from_s3:
+
+    import boto3
     # Load config from S3 Bucket
 
     if os.environ.get('AWS_ACCESS_KEY_ID'):
