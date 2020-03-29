@@ -36,7 +36,8 @@ mkdir -vp $d_run
 . quick_env.sh
 export PYTHONPATH=$d/eth_worker/eth_manager:$d/eth_worker:$d/eth_worker/eth_manager/task_interfaces
 
-GIT_BANCOR_COMMIT_REQUIRED=00396776d9ab8ad7bd3e5d9bc49309339bac474c
+#GIT_BANCOR_COMMIT_REQUIRED=00396776d9ab8ad7bd3e5d9bc49309339bac474c
+GIT_BANCOR_COMMIT_REQUIRED=41074e484972df1dca25e2f7e2eb78904edf2848
 
 # verify tool dependencies
 
