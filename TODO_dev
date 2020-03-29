@@ -1,0 +1,3 @@
+* script to edit:
+  - database port in secrets template
+  - password pepper base64

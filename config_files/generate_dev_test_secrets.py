@@ -3,8 +3,12 @@ import os
 import hashlib
 import base64
 import configparser
+import logging
 from eth_utils import keccak
 from web3 import Web3
+
+logging.basicConfig(level=logging.DEBUG)
+logg = logging.getLogger(__name__)
 
 def add_val(parser, section, key, value):
     try:
@@ -45,7 +49,9 @@ def generate_specific_secrets(write_path):
     add_val_sp = partial(add_val, specific_secrets_parser)
 
     APP = 'APP'
-    add_val_sp(APP, 'password_pepper', base64.b64encode(os.urandom(32)))
+    pepper = base64.b64encode(os.urandom(32))
+    logg.debug('pepper: {}'.format(pepper))
+    add_val_sp(APP, 'password_pepper', pepper.decode('utf-8'))
     add_val_sp(APP, 'secret_key', rand_hex(32))
     add_val_sp(APP, 'ecdsa_secret', rand_hex(32))
     add_val_sp(APP, 'basic_auth_username', 'interal_basic_auth')
