@@ -113,6 +113,7 @@ def register_tokens_from_app(host_address, auth_username, auth_password):
 
 
 blockchain_processor.registry.register_abi('ERC20', erc20_abi.abi)
+blockchain_processor.registry.register_abi('ERC20Token', erc20_abi.abi)
 blockchain_processor.registry.register_abi('bancor_converter', bancor_converter_abi.abi)
 blockchain_processor.registry.register_abi('bancor_network', bancor_network_abi.abi)
 
