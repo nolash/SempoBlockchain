@@ -1,0 +1,31 @@
+remember you need to add the following to your PYTHONPATH env var:
+
+ - .
+ - $REPOROOT/app
+ - $REPOROOT/eth_worker
+
+remember also to set your DEPLOYMENT_NAME env var in the most likely event that you are using your own config files
+
+
+for both examples you have to have a worker serving the eth_manager tasks. I used:
+
+$ celery -A eth_manager worker --loglevel=DEBUG --concurrency=4 --pool=eventlet -Q=high-priority --without-gossip --without-mingle
+
+
+the main.py file is run straightforward, and will send a task to that worker
+
+
+
+the beat will call a task we serve ourselves, so we need to start two additional celery processes for this example (while the eth_manager one is still running). In two different terminals run:
+
+$ celery -A xyzzy.taskzz.celeree beat --loglevel=DEBUG
+$ celery -A xyzzy.taskzz.celeree worker --loglevel=DEBUG 
+
+You should see movement in all three terminals running celery processes.
+
+
+Note a couple of things:
+
+- no problem to access the db from the app.tasks.celeree.foo task
+- if celeree was called celery you wouldh't have to name it explicitly. I renamed it to show the full path to the object that celery calls
+- 
