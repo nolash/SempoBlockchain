@@ -1,6 +1,7 @@
 remember you need to add the following to your PYTHONPATH env var:
 
  - .
+ - $REPOROOT
  - $REPOROOT/app
  - $REPOROOT/eth_worker
 
